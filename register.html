@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account</title>
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+    <div class="login-container">
+        <form class="main-login-container" id="register-form">
+            <div class="title">Checkly</div>
+            <div class="title-description">Create your account.</div>
+
+            <label class="custom-label" for="name">Full name</label>
+            <input class="custom-inp" type="text" id="name" required>
+
+            <label class="custom-label" for="email">Email</label>
+            <input class="custom-inp" type="text" id="email" required>
+
+            <label class="custom-label password-label" for="password">Password</label>
+            <input class="custom-inp" type="password" id="password" required minlength="4">
+
+            <label class="custom-label password-label" for="role">I am a...</label>
+            <select class="custom-inp custom-select" id="role">
+                <option value="student">Student</option>
+                <option value="teacher">Teacher</option>
+                <option value="admin">Admin</option>
+            </select>
+
+            <div id="admin-code-group" class="admin-code-group" style="display:none;">
+                <label class="custom-label" for="adminCode">Admin code</label>
+                <input class="custom-inp" type="text" id="adminCode" placeholder="Provided by your institution">
+            </div>
+
+            <button class="custom-button login-button" type="submit">Create Account</button>
+            <a class="custom-button create-link" href="index.html">Back to login</a>
+        </form>
+    </div>
+
+    <script src="static/app.js"></script>
+    <script src="static/register.js"></script>
+</body>
+</html>

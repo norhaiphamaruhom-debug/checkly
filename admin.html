@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | Checkly</title>
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+    <div class="topbar">
+        <div class="account-name">Loading...</div>
+        <button class="logout-button"></button>
+    </div>
+
+    <div class="admin-container">
+        <div class="list-title">Overview</div>
+        <div class="overview-stats"></div>
+
+        <div class="admin-columns">
+            <div class="admin-panel">
+                <div class="list-title">All accounts</div>
+                <input class="custom-inp search-input" type="text" id="user-search" placeholder="Search by name or email...">
+                <div class="table-scroll">
+                    <table id="users-table" class="users-table">
+                        <thead>
+                            <tr><th>Name</th><th>Email</th><th>Role</th><th></th></tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="admin-panel">
+                <div class="list-title">Add account</div>
+                <form id="create-user-form" class="create-user-form">
+                    <label class="custom-label" for="new-name">Full name</label>
+                    <input class="custom-inp" type="text" id="new-name" required>
+
+                    <label class="custom-label" for="new-email">Email</label>
+                    <input class="custom-inp" type="text" id="new-email" required>
+
+                    <label class="custom-label" for="new-password">Password</label>
+                    <input class="custom-inp" type="password" id="new-password" required minlength="4">
+
+                    <label class="custom-label" for="new-role">Role</label>
+                    <select class="custom-inp custom-select" id="new-role">
+                        <option value="student">Student</option>
+                        <option value="teacher">Teacher</option>
+                        <option value="admin">Admin</option>
+                    </select>
+
+                    <button class="custom-button login-button" type="submit">Create account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="static/app.js"></script>
+    <script src="static/admin.js"></script>
+</body>
+</html>
