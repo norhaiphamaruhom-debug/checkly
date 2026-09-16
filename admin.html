@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin | Checkly</title>
     <link rel="stylesheet" href="static/style.css">
+    <link rel="manifest" href="static/manifest.json">
+    <meta name="theme-color" content="#2F4A3B">
+    <link rel="apple-touch-icon" href="static/icons/apple-touch-icon.png">
+    <link rel="icon" href="static/icons/icon-512.png">
 </head>
 <body>
     <div class="topbar">
@@ -13,8 +17,23 @@
     </div>
 
     <div class="admin-container">
-        <div class="list-title">Overview</div>
+        <div class="dashboard-header">
+            <div class="list-title">Overview</div>
+            <div class="date-pill" id="today-date"></div>
+        </div>
         <div class="overview-stats"></div>
+
+        <div class="admin-panel trends-section">
+            <div class="list-title">Attendance trends - last 14 days</div>
+            <div class="trends-panel">
+                <svg class="trends-chart" id="trends-chart" viewBox="0 0 700 200" preserveAspectRatio="none"></svg>
+            </div>
+            <div class="trends-legend">
+                <span><i class="legend-dot legend-present"></i>Present</span>
+                <span><i class="legend-dot legend-late"></i>Late</span>
+                <span><i class="legend-dot legend-absent"></i>Absent</span>
+            </div>
+        </div>
 
         <div class="admin-columns">
             <div class="admin-panel">
@@ -51,6 +70,17 @@
 
                     <button class="custom-button login-button" type="submit">Create account</button>
                 </form>
+
+                <div class="import-panel">
+                    <div class="list-title" style="margin-top:0;">Bulk import (CSV)</div>
+                    <div class="empty-state" style="margin-top:2px; width:100%;">Columns: name, email, password, role</div>
+                    <div class="import-row">
+                        <input type="file" id="import-file" accept=".csv,text/csv">
+                        <button type="button" id="import-btn" class="btn btn-solid">Import</button>
+                    </div>
+                    <div id="import-summary" class="import-summary"></div>
+                    <div id="import-errors" class="import-errors"></div>
+                </div>
             </div>
         </div>
     </div>

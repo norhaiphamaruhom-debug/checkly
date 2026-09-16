@@ -13,9 +13,11 @@ Default seeded admin account:
     password: admin123
 
 Roles:
-    admin   - manage all accounts (create/delete teachers & students), view all attendance
-    teacher - view students, mark today's attendance (Present / Late / Absent)
-    student - view their own attendance history
+    admin   - manage all accounts (create/edit/delete, reset passwords, bulk
+              import, view all-time trends and today's attendance)
+    teacher - view students, mark attendance for today or any past date,
+              mark everyone present at once, undo a mark
+    student - view their own attendance history and overall percentage
 """
 
 import hashlib
@@ -24,15 +26,17 @@ import mimetypes
 import os
 import secrets
 import sqlite3
-from datetime import date
+from datetime import date, datetime, timedelta
 from http import cookies
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "checkly.db")
 ADMIN_SIGNUP_CODE = "CHECKLY-ADMIN-2026"  # required to self-register as an admin
 PASSWORD_SALT = "checkly_static_salt_v1"  # simple stdlib-only hashing, fine for a local demo app
+REMEMBER_ME_SECONDS = 60 * 60 * 24 * 30  # 30 days
+ABSENT_STREAK_LOOKBACK = 10  # how many recent rows to scan when computing a streak
 
 # token -> user_id (in-memory sessions; reset when the server restarts)
 SESSIONS = {}
@@ -86,6 +90,57 @@ def init_db():
         )
         conn.commit()
     conn.close()
+
+
+# ---------------------------------------------------------------------------
+# Small shared helpers
+# ---------------------------------------------------------------------------
+
+def parse_date_param(value):
+    """Validates a YYYY-MM-DD string. Falls back to today on anything bad,
+    and clamps anything in the future back to today - attendance doesn't
+    make sense for a day that hasn't happened yet."""
+    if not value:
+        return date.today().isoformat()
+    try:
+        parsed = datetime.strptime(value, "%Y-%m-%d").date()
+    except ValueError:
+        return date.today().isoformat()
+    if parsed > date.today():
+        return date.today().isoformat()
+    return parsed.isoformat()
+
+
+def get_students_with_status(conn, att_date):
+    """Every student, their status on att_date, and their current
+    consecutive-absence streak (looking backwards from their most recent
+    marked day)."""
+    rows = conn.execute(
+        """SELECT u.id, u.name, u.email,
+                  COALESCE(a.status, 'UNMARKED') AS status
+           FROM users u
+           LEFT JOIN attendance a ON a.student_id = u.id AND a.att_date = ?
+           WHERE u.role = 'student'
+           ORDER BY u.name""",
+        (att_date,),
+    ).fetchall()
+
+    students = []
+    for r in rows:
+        streak_rows = conn.execute(
+            "SELECT status FROM attendance WHERE student_id = ? ORDER BY att_date DESC LIMIT ?",
+            (r["id"], ABSENT_STREAK_LOOKBACK),
+        ).fetchall()
+        streak = 0
+        for sr in streak_rows:
+            if sr["status"] == "ABSENT":
+                streak += 1
+            else:
+                break
+        student = dict(r)
+        student["absentStreak"] = streak
+        students.append(student)
+    return students
 
 
 # ---------------------------------------------------------------------------
@@ -188,6 +243,8 @@ class CheeklyHandler(BaseHTTPRequestHandler):
     # -- API: GET -------------------------------------------------------------
 
     def handle_api_get(self, path):
+        query = parse_qs(urlparse(self.path).query)
+
         if path == "/api/session":
             user = self.current_user()
             self.send_json({"user": user})
@@ -197,19 +254,11 @@ class CheeklyHandler(BaseHTTPRequestHandler):
             user = self.require_role("teacher", "admin")
             if not user:
                 return
-            today = date.today().isoformat()
+            att_date = parse_date_param(query.get("date", [None])[0])
             conn = get_db()
-            rows = conn.execute(
-                """SELECT u.id, u.name, u.email,
-                          COALESCE(a.status, 'UNMARKED') AS status
-                   FROM users u
-                   LEFT JOIN attendance a ON a.student_id = u.id AND a.att_date = ?
-                   WHERE u.role = 'student'
-                   ORDER BY u.name""",
-                (today,),
-            ).fetchall()
+            students = get_students_with_status(conn, att_date)
             conn.close()
-            self.send_json({"date": today, "students": [dict(r) for r in rows]})
+            self.send_json({"date": att_date, "today": date.today().isoformat(), "students": students})
             return
 
         if path == "/api/attendance/me":
@@ -227,10 +276,14 @@ class CheeklyHandler(BaseHTTPRequestHandler):
                 (user["id"], today),
             ).fetchone()
             conn.close()
+            records = [dict(r) for r in rows]
+            present_count = sum(1 for r in records if r["status"] == "PRESENT")
+            percent_present = round(present_count / len(records) * 100) if records else None
             self.send_json({
                 "date": today,
                 "todayStatus": today_row["status"] if today_row else "UNMARKED",
-                "records": [dict(r) for r in rows],
+                "records": records,
+                "percentPresent": percent_present,
             })
             return
 
@@ -262,6 +315,35 @@ class CheeklyHandler(BaseHTTPRequestHandler):
             })
             return
 
+        if path == "/api/trends":
+            user = self.require_role("admin")
+            if not user:
+                return
+            days = 14
+            start = date.today() - timedelta(days=days - 1)
+            conn = get_db()
+            rows = conn.execute(
+                """SELECT att_date, status, COUNT(*) c FROM attendance
+                   WHERE att_date >= ? GROUP BY att_date, status""",
+                (start.isoformat(),),
+            ).fetchall()
+            conn.close()
+            by_date = {}
+            for r in rows:
+                by_date.setdefault(r["att_date"], {})[r["status"]] = r["c"]
+            series = []
+            for i in range(days):
+                d = (start + timedelta(days=i)).isoformat()
+                counts = by_date.get(d, {})
+                series.append({
+                    "date": d,
+                    "present": counts.get("PRESENT", 0),
+                    "late": counts.get("LATE", 0),
+                    "absent": counts.get("ABSENT", 0),
+                })
+            self.send_json({"days": series})
+            return
+
         self.send_json({"error": "Not found"}, 404)
 
     # -- API: POST --------------------------------------------------------------
@@ -290,21 +372,60 @@ class CheeklyHandler(BaseHTTPRequestHandler):
                 return
             student_id = body.get("studentId")
             status = body.get("status")
+            att_date = parse_date_param(body.get("date"))
             if status not in ("PRESENT", "LATE", "ABSENT"):
                 self.send_json({"error": "Invalid status."}, 400)
                 return
-            today = date.today().isoformat()
             conn = get_db()
             conn.execute(
                 """INSERT INTO attendance (student_id, att_date, status, marked_by)
                    VALUES (?,?,?,?)
                    ON CONFLICT(student_id, att_date)
                    DO UPDATE SET status = excluded.status, marked_by = excluded.marked_by""",
-                (student_id, today, status, user["id"]),
+                (student_id, att_date, status, user["id"]),
             )
             conn.commit()
             conn.close()
-            self.send_json({"ok": True})
+            self.send_json({"ok": True, "date": att_date})
+            return
+
+        if path == "/api/attendance/mark-all":
+            user = self.require_role("teacher", "admin")
+            if not user:
+                return
+            att_date = parse_date_param(body.get("date"))
+            conn = get_db()
+            students = get_students_with_status(conn, att_date)
+            marked = 0
+            for s in students:
+                if s["status"] == "UNMARKED":
+                    conn.execute(
+                        """INSERT INTO attendance (student_id, att_date, status, marked_by)
+                           VALUES (?,?,?,?)
+                           ON CONFLICT(student_id, att_date)
+                           DO UPDATE SET status = excluded.status, marked_by = excluded.marked_by""",
+                        (s["id"], att_date, "PRESENT", user["id"]),
+                    )
+                    marked += 1
+            conn.commit()
+            conn.close()
+            self.send_json({"ok": True, "date": att_date, "marked": marked})
+            return
+
+        if path == "/api/attendance/clear":
+            user = self.require_role("teacher", "admin")
+            if not user:
+                return
+            student_id = body.get("studentId")
+            att_date = parse_date_param(body.get("date"))
+            conn = get_db()
+            conn.execute(
+                "DELETE FROM attendance WHERE student_id = ? AND att_date = ?",
+                (student_id, att_date),
+            )
+            conn.commit()
+            conn.close()
+            self.send_json({"ok": True, "date": att_date})
             return
 
         if path == "/api/users/create":
@@ -312,6 +433,90 @@ class CheeklyHandler(BaseHTTPRequestHandler):
             if not user:
                 return
             self.create_user(body, allow_admin=True)
+            return
+
+        if path == "/api/users/bulk-create":
+            user = self.require_role("admin")
+            if not user:
+                return
+            rows = body.get("users") or []
+            created = 0
+            errors = []
+            conn = get_db()
+            for i, row in enumerate(rows):
+                name = (row.get("name") or "").strip()
+                email = (row.get("email") or "").strip().lower()
+                password = row.get("password") or ""
+                role = row.get("role") or "student"
+                label = email or name or f"row {i + 1}"
+                if role not in ("admin", "teacher", "student"):
+                    errors.append({"row": label, "error": "Invalid role."})
+                    continue
+                if not name or not email or len(password) < 4:
+                    errors.append({"row": label, "error": "Missing name/email or password too short."})
+                    continue
+                existing = conn.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
+                if existing:
+                    errors.append({"row": label, "error": "Email already registered."})
+                    continue
+                conn.execute(
+                    "INSERT INTO users (name, email, password_hash, role) VALUES (?,?,?,?)",
+                    (name, email, hash_password(password), role),
+                )
+                created += 1
+            conn.commit()
+            conn.close()
+            self.send_json({"ok": True, "created": created, "errors": errors})
+            return
+
+        if path == "/api/users/update":
+            user = self.require_role("admin")
+            if not user:
+                return
+            target_id = body.get("id")
+            name = (body.get("name") or "").strip()
+            email = (body.get("email") or "").strip().lower()
+            role = body.get("role") or "student"
+            if not name or not email:
+                self.send_json({"error": "Name and email are required."}, 400)
+                return
+            if role not in ("admin", "teacher", "student"):
+                self.send_json({"error": "Invalid role."}, 400)
+                return
+            conn = get_db()
+            clash = conn.execute(
+                "SELECT id FROM users WHERE email = ? AND id != ?", (email, target_id)
+            ).fetchone()
+            if clash:
+                conn.close()
+                self.send_json({"error": "That email is already registered."}, 400)
+                return
+            conn.execute(
+                "UPDATE users SET name = ?, email = ?, role = ? WHERE id = ?",
+                (name, email, role, target_id),
+            )
+            conn.commit()
+            conn.close()
+            self.send_json({"ok": True})
+            return
+
+        if path == "/api/users/reset-password":
+            user = self.require_role("admin")
+            if not user:
+                return
+            target_id = body.get("id")
+            new_password = body.get("newPassword") or ""
+            if len(new_password) < 4:
+                self.send_json({"error": "Password must be at least 4 characters."}, 400)
+                return
+            conn = get_db()
+            conn.execute(
+                "UPDATE users SET password_hash = ? WHERE id = ?",
+                (hash_password(new_password), target_id),
+            )
+            conn.commit()
+            conn.close()
+            self.send_json({"ok": True})
             return
 
         if path == "/api/users/delete":
@@ -376,6 +581,7 @@ class CheeklyHandler(BaseHTTPRequestHandler):
     def api_login(self, body):
         email = (body.get("email") or "").strip().lower()
         password = body.get("password") or ""
+        remember_me = bool(body.get("rememberMe"))
         conn = get_db()
         user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
         conn.close()
@@ -385,6 +591,8 @@ class CheeklyHandler(BaseHTTPRequestHandler):
         token = secrets.token_hex(24)
         SESSIONS[token] = user["id"]
         cookie = f"session={token}; Path=/; HttpOnly; SameSite=Lax"
+        if remember_me:
+            cookie += f"; Max-Age={REMEMBER_ME_SECONDS}"
         self.send_json(
             {"user": {"id": user["id"], "name": user["name"], "email": user["email"], "role": user["role"]}},
             set_cookie=cookie,

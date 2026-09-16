@@ -3,39 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Account</title>
+    <title>Create account | Checkly</title>
     <link rel="stylesheet" href="static/style.css">
+    <link rel="manifest" href="static/manifest.json">
+    <meta name="theme-color" content="#2F4A3B">
+    <link rel="apple-touch-icon" href="static/icons/apple-touch-icon.png">
+    <link rel="icon" href="static/icons/icon-512.png">
 </head>
-<body>
-    <div class="login-container">
-        <form class="main-login-container" id="register-form">
-            <div class="title">Checkly</div>
-            <div class="title-description">Create your account.</div>
+<body class="auth-body">
+    <div class="auth-shell">
+        <section class="auth-visual" aria-hidden="true">
+            <div class="auth-visual-inner">
+                <div class="auth-wordmark">Checkly</div>
+                <p class="auth-tagline">Get your class roster ready in a minute.</p>
 
-            <label class="custom-label" for="name">Full name</label>
-            <input class="custom-inp" type="text" id="name" required>
-
-            <label class="custom-label" for="email">Email</label>
-            <input class="custom-inp" type="text" id="email" required>
-
-            <label class="custom-label password-label" for="password">Password</label>
-            <input class="custom-inp" type="password" id="password" required minlength="4">
-
-            <label class="custom-label password-label" for="role">I am a...</label>
-            <select class="custom-inp custom-select" id="role">
-                <option value="student">Student</option>
-                <option value="teacher">Teacher</option>
-                <option value="admin">Admin</option>
-            </select>
-
-            <div id="admin-code-group" class="admin-code-group" style="display:none;">
-                <label class="custom-label" for="adminCode">Admin code</label>
-                <input class="custom-inp" type="text" id="adminCode" placeholder="Provided by your institution">
+                <div class="roll-sheet">
+                    <div class="roll-row">
+                        <span class="roll-name-bar"></span>
+                        <span class="roll-mark roll-present">&#10003;</span>
+                    </div>
+                    <div class="roll-row">
+                        <span class="roll-name-bar"></span>
+                        <span class="roll-mark roll-present">&#10003;</span>
+                    </div>
+                    <div class="roll-row">
+                        <span class="roll-name-bar"></span>
+                        <span class="roll-mark roll-late">&#9201;</span>
+                    </div>
+                    <div class="roll-row">
+                        <span class="roll-name-bar"></span>
+                        <span class="roll-mark roll-present">&#10003;</span>
+                    </div>
+                    <div class="roll-row">
+                        <span class="roll-name-bar"></span>
+                        <span class="roll-mark roll-absent">&#10007;</span>
+                    </div>
+                </div>
             </div>
+        </section>
 
-            <button class="custom-button login-button" type="submit">Create Account</button>
-            <a class="custom-button create-link" href="index.html">Back to login</a>
-        </form>
+        <section class="auth-form-panel">
+            <form class="auth-form" id="register-form" novalidate>
+                <h1 class="auth-heading">Create your account</h1>
+                <p class="auth-subheading">Pick your role and you're ready to go.</p>
+
+                <label class="custom-label" for="name">Full name</label>
+                <input class="custom-inp" type="text" id="name" autocomplete="name" required>
+
+                <label class="custom-label" for="email">Email</label>
+                <input class="custom-inp" type="text" id="email" autocomplete="email" required>
+
+                <label class="custom-label" for="password">Password</label>
+                <input class="custom-inp" type="password" id="password" autocomplete="new-password" minlength="4" required>
+
+                <span class="custom-label">I am a...</span>
+                <div class="role-picker" role="radiogroup" aria-label="Account role">
+                    <input type="radio" name="role" id="role-student" value="student" checked>
+                    <label class="role-pill" for="role-student">Student</label>
+
+                    <input type="radio" name="role" id="role-teacher" value="teacher">
+                    <label class="role-pill" for="role-teacher">Teacher</label>
+
+                    <input type="radio" name="role" id="role-admin" value="admin">
+                    <label class="role-pill" for="role-admin">Admin</label>
+                </div>
+
+                <div id="admin-code-group" class="admin-code-group" hidden>
+                    <label class="custom-label" for="adminCode">Admin code</label>
+                    <input class="custom-inp" type="text" id="adminCode" placeholder="Provided by your institution">
+                </div>
+
+                <button class="auth-submit" type="submit">Create account</button>
+
+                <p class="auth-switch">Already have an account? <a href="index.html">Log in</a></p>
+            </form>
+        </section>
     </div>
 
     <script src="static/app.js"></script>

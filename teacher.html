@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teacher | Checkly</title>
     <link rel="stylesheet" href="static/style.css">
+    <link rel="manifest" href="static/manifest.json">
+    <meta name="theme-color" content="#2F4A3B">
+    <link rel="apple-touch-icon" href="static/icons/apple-touch-icon.png">
+    <link rel="icon" href="static/icons/icon-512.png">
 </head>
 <body>
     <div class="topbar">
@@ -14,9 +18,42 @@
 
     <div class="main-homepage-container">
         <div class="list-container">
-            <div class="list-title">Students - mark today's attendance</div>
+            <div class="dashboard-header">
+                <div class="list-title">Mark attendance</div>
+                <div class="date-nav">
+                    <button type="button" id="date-prev" aria-label="Previous day">&#8592;</button>
+                    <input type="date" id="date-picker" aria-label="Attendance date">
+                    <button type="button" id="date-next" aria-label="Next day">&#8594;</button>
+                    <button type="button" id="date-today" class="btn btn-outline" hidden>Today</button>
+                </div>
+            </div>
+            <div id="past-date-banner" class="viewing-past-banner" hidden></div>
             <div class="today-summary"></div>
-            <input class="custom-inp search-input" type="text" id="student-search" placeholder="Search students...">
+            <div class="action-row">
+                <button type="button" id="mark-all-btn" class="btn btn-solid">Mark all present</button>
+                <button type="button" id="print-btn" class="btn btn-outline">Print roster</button>
+            </div>
+            <div class="list-controls">
+                <div class="control-field">
+                    <svg class="control-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.6"/>
+                        <line x1="13.6" y1="13.6" x2="18" y2="18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                    </svg>
+                    <input class="custom-inp search-input" type="text" id="student-search" placeholder="Search students...">
+                </div>
+                <div class="control-field">
+                    <svg class="control-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 4h14l-5.5 6.5v5L8.5 17v-6.5L3 4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                    </svg>
+                    <select class="custom-inp custom-select filter-select" id="student-status-filter">
+                        <option value="all">All students</option>
+                        <option value="ABSENT">Absent only</option>
+                        <option value="UNMARKED">Unmarked only</option>
+                        <option value="LATE">Late only</option>
+                        <option value="PRESENT">Present only</option>
+                    </select>
+                </div>
+            </div>
             <div class="students-container"></div>
         </div>
     </div>

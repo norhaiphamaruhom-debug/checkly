@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student | Checkly</title>
     <link rel="stylesheet" href="static/style.css">
+    <link rel="manifest" href="static/manifest.json">
+    <meta name="theme-color" content="#2F4A3B">
+    <link rel="apple-touch-icon" href="static/icons/apple-touch-icon.png">
+    <link rel="icon" href="static/icons/icon-512.png">
 </head>
 <body>
     <div class="topbar">
@@ -14,10 +18,40 @@
 
     <div class="main-homepage-container">
         <div class="list-container">
-            <div class="list-title">Today</div>
+            <div class="dashboard-header">
+                <div class="list-title">Today</div>
+                <div class="date-pill" id="today-date"></div>
+            </div>
             <div class="today-summary"></div>
+
             <div class="list-title">Your attendance history</div>
-            <div class="attendance-history"></div>
+
+            <div class="view-toggle">
+                <button type="button" id="view-list-btn" class="active">List</button>
+                <button type="button" id="view-calendar-btn">Calendar</button>
+            </div>
+
+            <div id="list-view">
+                <div class="action-row">
+                    <button type="button" id="export-csv-btn" class="btn btn-outline">Export as CSV</button>
+                </div>
+                <div class="attendance-history"></div>
+            </div>
+
+            <div id="calendar-view" hidden>
+                <div class="calendar-nav">
+                    <button type="button" id="cal-prev" aria-label="Previous month">&#8592;</button>
+                    <div class="calendar-month-label" id="cal-month-label"></div>
+                    <button type="button" id="cal-next" aria-label="Next month">&#8594;</button>
+                </div>
+                <div class="calendar-grid" id="calendar-weekdays"></div>
+                <div class="calendar-grid" id="calendar-grid"></div>
+                <div class="calendar-legend">
+                    <span><i class="legend-dot legend-present"></i>Present</span>
+                    <span><i class="legend-dot legend-late"></i>Late</span>
+                    <span><i class="legend-dot legend-absent"></i>Absent</span>
+                </div>
+            </div>
         </div>
     </div>
 

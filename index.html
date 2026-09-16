@@ -3,25 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Log in | Checkly</title>
     <link rel="stylesheet" href="static/style.css">
+    <link rel="manifest" href="static/manifest.json">
+    <meta name="theme-color" content="#2F4A3B">
+    <link rel="apple-touch-icon" href="static/icons/apple-touch-icon.png">
+    <link rel="icon" href="static/icons/icon-512.png">
 </head>
-<body>
-    <div class="login-container">
-        <form class="main-login-container" id="login-form">
-            <div class="title">Checkly</div>
-            <div class="title-description">Student attendance system.</div>
+<body class="auth-body">
+    <div class="auth-shell">
+        <section class="auth-visual" aria-hidden="true">
+            <div class="auth-visual-inner">
+                <div class="auth-wordmark">Checkly</div>
+                <p class="auth-tagline">Take roll in seconds.</p>
 
-            <label class="custom-label email-label" for="email">Email</label>
-            <input class="custom-inp" type="text" name="email" id="email" required>
+                <div class="roll-sheet">
+                    <div class="roll-row">
+                        <span class="roll-name-bar"></span>
+                        <span class="roll-mark roll-present">&#10003;</span>
+                    </div>
+                    <div class="roll-row">
+                        <span class="roll-name-bar"></span>
+                        <span class="roll-mark roll-present">&#10003;</span>
+                    </div>
+                    <div class="roll-row">
+                        <span class="roll-name-bar"></span>
+                        <span class="roll-mark roll-late">&#9201;</span>
+                    </div>
+                    <div class="roll-row">
+                        <span class="roll-name-bar"></span>
+                        <span class="roll-mark roll-present">&#10003;</span>
+                    </div>
+                    <div class="roll-row">
+                        <span class="roll-name-bar"></span>
+                        <span class="roll-mark roll-absent">&#10007;</span>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-            <label class="custom-label password-label" for="password">Password</label>
-            <input class="custom-inp" type="password" name="password" id="password" required>
+        <section class="auth-form-panel">
+            <form class="auth-form" id="login-form" novalidate>
+                <h1 class="auth-heading">Welcome back</h1>
+                <p class="auth-subheading">Log in to mark or check today's attendance.</p>
 
-            <button class="custom-button login-button" type="submit">Login</button>
-            <a class="custom-button create-link" href="register.html">Create Account</a>
+                <label class="custom-label" for="email">Email</label>
+                <input class="custom-inp" type="text" name="email" id="email" autocomplete="email" required>
 
-        </form>
+                <label class="custom-label" for="password">Password</label>
+                <input class="custom-inp" type="password" name="password" id="password" autocomplete="current-password" required>
+
+                <label class="remember-me-label">
+                    <input type="checkbox" id="remember-me">
+                    Remember me
+                </label>
+
+                <button class="auth-submit" type="submit">Log in</button>
+
+                <p class="auth-switch">New here? <a href="register.html">Create an account</a></p>
+            </form>
+        </section>
     </div>
 
     <script src="static/app.js"></script>
