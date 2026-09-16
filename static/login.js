@@ -1,7 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const form = document.querySelector(".main-login-container");
+    const form = document.getElementById("login-form");
     const emailInput = document.getElementById("email");
     const passwordInput = document.getElementById("password");
+    const rememberInput = document.getElementById("remember-me");
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -9,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const { user } = await apiPost("/api/login", {
                 email: emailInput.value.trim(),
                 password: passwordInput.value,
+                rememberMe: rememberInput.checked,
             });
             window.location.href = roleHome(user.role);
         } catch (err) {
