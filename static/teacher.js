@@ -1,40 +1,98 @@
 let allStudents = [];
+let currentDate = null; // ISO date currently being viewed/marked
+let todayIso = null;    // the server's notion of "today" - can't navigate past this
 
 document.addEventListener("DOMContentLoaded", async () => {
     const user = await guardPage("teacher");
     if (!user) return;
     wireTopbar(user);
+
     await loadStudents();
 
     const search = document.getElementById("student-search");
     search.addEventListener(
         "input",
-        debounce(() => renderStudents(filterStudents(search.value)), 150)
+        debounce(() => renderStudents(visibleStudents()), 150)
     );
+
+    const statusFilter = document.getElementById("student-status-filter");
+    statusFilter.addEventListener("change", () => renderStudents(visibleStudents()));
+
+    document.getElementById("date-prev").addEventListener("click", () => loadStudents(shiftDate(currentDate, -1)));
+    document.getElementById("date-next").addEventListener("click", () => loadStudents(shiftDate(currentDate, 1)));
+    document.getElementById("date-today").addEventListener("click", () => loadStudents(todayIso));
+    document.getElementById("date-picker").addEventListener("change", (e) => {
+        if (e.target.value) loadStudents(e.target.value);
+    });
+
+    document.getElementById("mark-all-btn").addEventListener("click", markAllPresent);
+    document.getElementById("print-btn").addEventListener("click", () => window.print());
 });
 
-async function loadStudents() {
+function shiftDate(iso, delta) {
+    const d = new Date(`${iso}T00:00:00`);
+    d.setDate(d.getDate() + delta);
+    return d.toISOString().slice(0, 10);
+}
+
+async function loadStudents(date) {
     const container = document.querySelector(".students-container");
-    container.innerHTML = '<div class="empty-state">Loading students...</div>';
+    container.innerHTML = "";
+    container.appendChild(skeletonBlocks(6, "skeleton-card"));
+
     try {
-        const data = await apiGet("/api/students");
+        const data = await apiGet(`/api/students${date ? `?date=${date}` : ""}`);
         allStudents = data.students;
+        currentDate = data.date;
+        todayIso = data.today;
+        updateDateControls();
     } catch (err) {
         container.innerHTML = "";
         toast(err.message, "error");
         return;
     }
     renderSummary(allStudents);
-    const search = document.getElementById("student-search");
-    renderStudents(filterStudents(search ? search.value : ""));
+    renderStudents(visibleStudents());
 }
 
-function filterStudents(term) {
+function updateDateControls() {
+    document.getElementById("date-picker").value = currentDate;
+    document.getElementById("date-picker").max = todayIso;
+    document.getElementById("date-next").disabled = currentDate >= todayIso;
+
+    const isPast = currentDate !== todayIso;
+    document.getElementById("date-today").hidden = !isPast;
+
+    const banner = document.getElementById("past-date-banner");
+    if (isPast) {
+        banner.hidden = false;
+        banner.textContent = `Viewing ${formatDisplayDate(currentDate)} - changes here update that day's records, not today's.`;
+    } else {
+        banner.hidden = true;
+    }
+}
+
+// Applies the current search term and status filter together, so either
+// control can change without the other one's setting getting lost.
+function visibleStudents() {
+    const search = document.getElementById("student-search");
+    const statusFilter = document.getElementById("student-status-filter");
+    let list = filterBySearch(allStudents, search ? search.value : "");
+    list = filterByStatus(list, statusFilter ? statusFilter.value : "all");
+    return list.slice().sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function filterBySearch(students, term) {
     const t = (term || "").trim().toLowerCase();
-    if (!t) return allStudents;
-    return allStudents.filter(
+    if (!t) return students;
+    return students.filter(
         (s) => s.name.toLowerCase().includes(t) || s.email.toLowerCase().includes(t)
     );
+}
+
+function filterByStatus(students, status) {
+    if (!status || status === "all") return students;
+    return students.filter((s) => s.status === status);
 }
 
 function renderSummary(students) {
@@ -43,9 +101,9 @@ function renderSummary(students) {
     for (const s of students) counts[s.status] = (counts[s.status] || 0) + 1;
 
     summaryEl.innerHTML = `
-        <div class="stat-card stat-present"><div class="stat-value">${counts.PRESENT}</div><div class="stat-label">Present today</div></div>
-        <div class="stat-card stat-late"><div class="stat-value">${counts.LATE}</div><div class="stat-label">Late today</div></div>
-        <div class="stat-card stat-absent"><div class="stat-value">${counts.ABSENT}</div><div class="stat-label">Absent today</div></div>
+        <div class="stat-card stat-present"><div class="stat-value">${counts.PRESENT}</div><div class="stat-label">Present</div></div>
+        <div class="stat-card stat-late"><div class="stat-value">${counts.LATE}</div><div class="stat-label">Late</div></div>
+        <div class="stat-card stat-absent"><div class="stat-value">${counts.ABSENT}</div><div class="stat-label">Absent</div></div>
         <div class="stat-card stat-unmarked"><div class="stat-value">${counts.UNMARKED}</div><div class="stat-label">Unmarked</div></div>
     `;
 }
@@ -55,7 +113,7 @@ function renderStudents(students) {
     container.innerHTML = "";
 
     if (students.length === 0) {
-        container.innerHTML = '<div class="empty-state">No students match your search.</div>';
+        container.innerHTML = '<div class="empty-state">No students match your search and filter.</div>';
         return;
     }
 
@@ -64,12 +122,37 @@ function renderStudents(students) {
     }
 }
 
+async function markAllPresent() {
+    const btn = document.getElementById("mark-all-btn");
+    btn.disabled = true;
+    try {
+        const result = await apiPost("/api/attendance/mark-all", { date: currentDate });
+        if (result.marked > 0) {
+            toast(`Marked ${result.marked} student${result.marked === 1 ? "" : "s"} present.`);
+        } else {
+            toast("Everyone already has a status today.");
+        }
+        await loadStudents(currentDate);
+    } catch (err) {
+        toast(err.message, "error");
+    } finally {
+        btn.disabled = false;
+    }
+}
+
 function renderStudentCard(student) {
     const card = document.createElement("div");
     card.className = "student-profiles";
 
+    const streakBadge =
+        student.absentStreak >= 3
+            ? `<div class="streak-badge" title="${student.absentStreak} absences in a row">&#128293; ${student.absentStreak}</div>`
+            : "";
+
     card.innerHTML = `
+        ${streakBadge}
         <div class="student-profile-cover"></div>
+        <img class="student-profile-img" src="${avatarUrl(student)}" alt="${escapeHtml(student.name)}" loading="lazy">
         <div class="student-name">${escapeHtml(student.name)}</div>
         <div class="student-attendance status-${student.status}">${student.status}</div>
         <div class="attendance-actions">
@@ -81,11 +164,18 @@ function renderStudentCard(student) {
 
     card.querySelectorAll(".mark-btn").forEach((btn) => {
         btn.addEventListener("click", async () => {
+            const previousStatus = student.status;
+            const newStatus = btn.dataset.status;
             btn.disabled = true;
             try {
-                await apiPost("/api/attendance", { studentId: student.id, status: btn.dataset.status });
-                toast(`${student.name} marked ${btn.dataset.status.toLowerCase()}.`);
-                await loadStudents();
+                await apiPost("/api/attendance", { studentId: student.id, status: newStatus, date: currentDate });
+                toast(
+                    `${student.name} marked ${newStatus.toLowerCase()}.`,
+                    "ok",
+                    "Undo",
+                    () => undoMark(student.id, previousStatus)
+                );
+                await loadStudents(currentDate);
             } catch (err) {
                 toast(err.message, "error");
             } finally {
@@ -97,8 +187,30 @@ function renderStudentCard(student) {
     return card;
 }
 
+async function undoMark(studentId, previousStatus) {
+    try {
+        if (previousStatus === "UNMARKED") {
+            await apiPost("/api/attendance/clear", { studentId, date: currentDate });
+        } else {
+            await apiPost("/api/attendance", { studentId, status: previousStatus, date: currentDate });
+        }
+        toast("Reverted.");
+        await loadStudents(currentDate);
+    } catch (err) {
+        toast(err.message, "error");
+    }
+}
+
 function escapeHtml(str) {
     const div = document.createElement("div");
     div.textContent = str;
     return div.innerHTML;
+}
+
+// Nobody uploads real photos in this demo app, so give every student a
+// stable, distinct-looking initials avatar instead of a blank/empty card.
+// Seeded on their email so the same student always gets the same avatar.
+function avatarUrl(student) {
+    const seed = encodeURIComponent(student.email || student.name || String(student.id));
+    return `https://api.dicebear.com/9.x/initials/svg?seed=${seed}&backgroundType=gradientLinear`;
 }
