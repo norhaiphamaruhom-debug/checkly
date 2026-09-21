@@ -646,12 +646,16 @@ body.auth-body {
     margin-top: 2px;
 }
 
+/* All three admin sections - Classes, All accounts, Add account - share
+   the same full-width column and stack top to bottom in that order,
+   rather than the accounts sitting side by side. */
 .admin-columns {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 25px;
-    justify-content: center;
-    align-items: flex-start;
+    width: 90%;
+    max-width: 900px;
+    margin: 0 auto;
 }
 
 .admin-panel {
@@ -659,12 +663,11 @@ body.auth-body {
     border: 1px solid rgba(51, 44, 34, 0.15);
     border-radius: 8px;
     padding: 15px;
-    min-width: 300px;
-    flex: 1;
-    max-width: 480px;
+    width: 100%;
 }
 
-.admin-panel.trends-section {
+.admin-panel.trends-section,
+.admin-panel.classes-section {
     max-width: 900px;
     width: 90%;
     margin: 0 auto 25px;
