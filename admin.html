@@ -9,6 +9,26 @@
     <meta name="theme-color" content="#2F4A3B">
     <link rel="apple-touch-icon" href="static/icons/apple-touch-icon.png">
     <link rel="icon" href="static/icons/icon-512.png">
+    <style>
+        /* Minimal styling for the Classes panel - move into style.css if you prefer. */
+        .create-class-form { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+        .create-class-form input { flex: 1; min-width: 160px; }
+        .classes-list { display: flex; flex-direction: column; gap: 12px; }
+        .class-card { border: 1px solid rgba(0,0,0,0.1); border-radius: 10px; padding: 14px; }
+        .class-card-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .class-card-title { font-weight: 600; }
+        .class-card-actions { display: flex; gap: 6px; }
+        .class-card-meta { display: flex; gap: 10px; margin: 6px 0; font-size: 0.85em; opacity: 0.75; flex-wrap: wrap; }
+        .class-card-teachers { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+        .chip { display: inline-flex; align-items: center; gap: 6px; background: rgba(47,74,59,0.1); border-radius: 999px; padding: 4px 10px; font-size: 0.85em; }
+        .chip-remove { border: none; background: none; cursor: pointer; font-size: 1em; line-height: 1; opacity: 0.6; }
+        .chip-remove:hover { opacity: 1; }
+        .add-teacher-row { display: flex; gap: 8px; margin-top: 6px; }
+        .empty-inline { opacity: 0.6; font-size: 0.85em; }
+        .row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+        .role-tag { text-transform: capitalize; padding: 2px 8px; border-radius: 999px; background: rgba(0,0,0,0.06); font-size: 0.85em; }
+        .import-error-row { font-size: 0.85em; color: #c0392b; }
+    </style>
 </head>
 <body>
     <div class="topbar">
@@ -35,6 +55,17 @@
             </div>
         </div>
 
+        <div class="admin-panel classes-section">
+            <div class="list-title">Classes</div>
+            <form id="create-class-form" class="create-class-form">
+                <input class="custom-inp" type="text" id="new-class-name" placeholder="Class name (e.g. Grade 10 - A)" required>
+                <input class="custom-inp" type="text" id="new-class-year" placeholder="Year level (optional)">
+                <input class="custom-inp" type="text" id="new-class-course" placeholder="Course/subject (optional)">
+                <button class="btn btn-solid" type="submit">Add class</button>
+            </form>
+            <div id="classes-list" class="classes-list"></div>
+        </div>
+
         <div class="admin-columns">
             <div class="admin-panel">
                 <div class="list-title">All accounts</div>
@@ -42,7 +73,7 @@
                 <div class="table-scroll">
                     <table id="users-table" class="users-table">
                         <thead>
-                            <tr><th>Name</th><th>Email</th><th>Role</th><th></th></tr>
+                            <tr><th>Name</th><th>Email</th><th>Role</th><th>Class</th><th></th></tr>
                         </thead>
                         <tbody></tbody>
                     </table>
@@ -68,12 +99,19 @@
                         <option value="admin">Admin</option>
                     </select>
 
+                    <div id="new-user-class-group">
+                        <label class="custom-label" for="new-class">Class</label>
+                        <select class="custom-inp custom-select" id="new-class">
+                            <option value="">Unassigned</option>
+                        </select>
+                    </div>
+
                     <button class="custom-button login-button" type="submit">Create account</button>
                 </form>
 
                 <div class="import-panel">
                     <div class="list-title" style="margin-top:0;">Bulk import (CSV)</div>
-                    <div class="empty-state" style="margin-top:2px; width:100%;">Columns: name, email, password, role</div>
+                    <div class="empty-state" style="margin-top:2px; width:100%;">Columns: name, email, password, role, class (optional - must match an existing class name exactly)</div>
                     <div class="import-row">
                         <input type="file" id="import-file" accept=".csv,text/csv">
                         <button type="button" id="import-btn" class="btn btn-solid">Import</button>
