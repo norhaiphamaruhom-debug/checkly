@@ -48,7 +48,10 @@ function roleHome(role) {
 
 function wireTopbar(user) {
     const nameEl = document.querySelector(".account-name");
-    if (nameEl) nameEl.textContent = `${user.name} \u00B7 ${user.role}`;
+    if (nameEl) {
+        const roleBit = user.className ? `${user.role} \u00B7 ${user.className}` : user.role;
+        nameEl.textContent = `${user.name} \u00B7 ${roleBit}`;
+    }
 
     const logoutBtn = document.querySelector(".logout-button");
     if (logoutBtn) {
