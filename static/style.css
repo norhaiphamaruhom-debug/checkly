@@ -701,7 +701,7 @@ body.auth-body {
 
 /* Column proportions - only while the table renders as an actual table.
    The mobile stacked-card layout below resets these to full width. */
-@media (min-width: 701px) {
+@media (min-width: 481px) {
     .users-table th:nth-child(1), .users-table td:nth-child(1) { width: 21%; }
     .users-table th:nth-child(2), .users-table td:nth-child(2) { width: 29%; }
     .users-table th:nth-child(3), .users-table td:nth-child(3) { width: 13%; }
@@ -1005,10 +1005,8 @@ body.auth-body {
     }
 }
 
-/* Turn the users table into a stack of labeled rows below tablet width -
-   name, email, role, class and the action icons don't have room to share
-   five fixed columns much below 700px, so it becomes a card per account. */
-@media (max-width: 700px) {
+/* Turn the users table into a stack of labeled rows on small screens */
+@media (max-width: 480px) {
     .users-table {
         min-width: 0;
     }
@@ -1563,9 +1561,11 @@ body.auth-body {
 
 .row-actions {
     display: flex;
-    flex-wrap: nowrap;
-    gap: 6px;
+    flex-wrap: wrap;
+    gap: 5px;
     justify-content: flex-end;
+    padding-right: 0;
+    margin-right: -4px;
 }
 
 /* Compact circular icon buttons for table row actions - same round-button
