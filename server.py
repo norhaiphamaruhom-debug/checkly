@@ -79,7 +79,31 @@ def init_db():
             FOREIGN KEY(student_id) REFERENCES users(id) ON DELETE CASCADE
         )"""
     )
+    conn.execute(
+        """CREATE TABLE IF NOT EXISTS classes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            year_level TEXT,
+            course TEXT
+        )"""
+    )
+    conn.execute(
+        """CREATE TABLE IF NOT EXISTS class_teachers (
+            class_id INTEGER NOT NULL,
+            teacher_id INTEGER NOT NULL,
+            PRIMARY KEY (class_id, teacher_id),
+            FOREIGN KEY(class_id) REFERENCES classes(id) ON DELETE CASCADE,
+            FOREIGN KEY(teacher_id) REFERENCES users(id) ON DELETE CASCADE
+        )"""
+    )
     conn.commit()
+
+    # Migration: older databases won't have this column yet. A student's
+    # class_id is NULL until an admin assigns them to a class.
+    user_cols = [r["name"] for r in conn.execute("PRAGMA table_info(users)")]
+    if "class_id" not in user_cols:
+        conn.execute("ALTER TABLE users ADD COLUMN class_id INTEGER REFERENCES classes(id)")
+        conn.commit()
 
     # Seed a default admin account so there's always a way in.
     row = conn.execute("SELECT COUNT(*) AS c FROM users WHERE role = 'admin'").fetchone()
@@ -111,19 +135,21 @@ def parse_date_param(value):
     return parsed.isoformat()
 
 
-def get_students_with_status(conn, att_date):
+def get_students_with_status(conn, att_date, class_id=None):
     """Every student, their status on att_date, and their current
     consecutive-absence streak (looking backwards from their most recent
-    marked day)."""
-    rows = conn.execute(
-        """SELECT u.id, u.name, u.email,
-                  COALESCE(a.status, 'UNMARKED') AS status
-           FROM users u
-           LEFT JOIN attendance a ON a.student_id = u.id AND a.att_date = ?
-           WHERE u.role = 'student'
-           ORDER BY u.name""",
-        (att_date,),
-    ).fetchall()
+    marked day). Pass class_id to restrict to one class's roster."""
+    query = """SELECT u.id, u.name, u.email, u.class_id,
+                      COALESCE(a.status, 'UNMARKED') AS status
+               FROM users u
+               LEFT JOIN attendance a ON a.student_id = u.id AND a.att_date = ?
+               WHERE u.role = 'student'"""
+    params = [att_date]
+    if class_id is not None:
+        query += " AND u.class_id = ?"
+        params.append(class_id)
+    query += " ORDER BY u.name"
+    rows = conn.execute(query, params).fetchall()
 
     students = []
     for r in rows:
@@ -141,6 +167,43 @@ def get_students_with_status(conn, att_date):
         student["absentStreak"] = streak
         students.append(student)
     return students
+
+
+def get_teacher_classes(conn, teacher_id):
+    """Classes a teacher is assigned to teach, alphabetical."""
+    rows = conn.execute(
+        """SELECT c.id, c.name, c.year_level, c.course
+           FROM classes c
+           JOIN class_teachers ct ON ct.class_id = c.id
+           WHERE ct.teacher_id = ?
+           ORDER BY c.name""",
+        (teacher_id,),
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def teacher_teaches_class(conn, teacher_id, class_id):
+    if class_id is None:
+        return False
+    row = conn.execute(
+        "SELECT 1 FROM class_teachers WHERE teacher_id = ? AND class_id = ?",
+        (teacher_id, class_id),
+    ).fetchone()
+    return row is not None
+
+
+def teacher_can_access_student(conn, user, student_id):
+    """Admins can act on any student. Teachers can only act on students in
+    a class they're assigned to teach."""
+    if user["role"] == "admin":
+        return True
+    row = conn.execute(
+        """SELECT 1 FROM users u
+           JOIN class_teachers ct ON ct.class_id = u.class_id
+           WHERE u.id = ? AND ct.teacher_id = ?""",
+        (student_id, user["id"]),
+    ).fetchone()
+    return row is not None
 
 
 # ---------------------------------------------------------------------------
@@ -187,9 +250,18 @@ class CheeklyHandler(BaseHTTPRequestHandler):
             return None
         user_id = SESSIONS[token]
         conn = get_db()
-        user = conn.execute("SELECT id, name, email, role FROM users WHERE id = ?", (user_id,)).fetchone()
+        user = conn.execute(
+            """SELECT u.id, u.name, u.email, u.role, c.name AS class_name
+               FROM users u LEFT JOIN classes c ON c.id = u.class_id
+               WHERE u.id = ?""",
+            (user_id,),
+        ).fetchone()
         conn.close()
-        return dict(user) if user else None
+        if not user:
+            return None
+        result = dict(user)
+        result["className"] = result.pop("class_name")
+        return result
 
     def require_role(self, *roles):
         user = self.current_user()
@@ -255,10 +327,42 @@ class CheeklyHandler(BaseHTTPRequestHandler):
             if not user:
                 return
             att_date = parse_date_param(query.get("date", [None])[0])
+            requested_class_id = query.get("classId", [None])[0]
+            requested_class_id = int(requested_class_id) if requested_class_id else None
             conn = get_db()
-            students = get_students_with_status(conn, att_date)
+
+            if user["role"] == "teacher":
+                teacher_classes = get_teacher_classes(conn, user["id"])
+                class_ids = [c["id"] for c in teacher_classes]
+                if not class_ids:
+                    conn.close()
+                    self.send_json({
+                        "date": att_date,
+                        "today": date.today().isoformat(),
+                        "students": [],
+                        "classes": [],
+                        "currentClassId": None,
+                    })
+                    return
+                current_class_id = requested_class_id if requested_class_id in class_ids else class_ids[0]
+                students = get_students_with_status(conn, att_date, class_id=current_class_id)
+                classes_out = teacher_classes
+            else:
+                # Admin: optionally scope to one class, otherwise see everyone.
+                current_class_id = requested_class_id
+                students = get_students_with_status(conn, att_date, class_id=current_class_id)
+                classes_out = [dict(r) for r in conn.execute(
+                    "SELECT id, name, year_level, course FROM classes ORDER BY name"
+                ).fetchall()]
+
             conn.close()
-            self.send_json({"date": att_date, "today": date.today().isoformat(), "students": students})
+            self.send_json({
+                "date": att_date,
+                "today": date.today().isoformat(),
+                "students": students,
+                "classes": classes_out,
+                "currentClassId": current_class_id,
+            })
             return
 
         if path == "/api/attendance/me":
@@ -292,9 +396,60 @@ class CheeklyHandler(BaseHTTPRequestHandler):
             if not user:
                 return
             conn = get_db()
-            rows = conn.execute("SELECT id, name, email, role FROM users ORDER BY role, name").fetchall()
+            rows = conn.execute(
+                """SELECT u.id, u.name, u.email, u.role, u.class_id, c.name AS class_name
+                   FROM users u LEFT JOIN classes c ON c.id = u.class_id
+                   ORDER BY u.role, u.name"""
+            ).fetchall()
+            users = [dict(r) for r in rows]
+            teacher_ids = [u["id"] for u in users if u["role"] == "teacher"]
+            teaching = {}
+            if teacher_ids:
+                placeholders = ",".join("?" * len(teacher_ids))
+                for r in conn.execute(
+                    f"""SELECT ct.teacher_id, c.name FROM class_teachers ct
+                        JOIN classes c ON c.id = ct.class_id
+                        WHERE ct.teacher_id IN ({placeholders})
+                        ORDER BY c.name""",
+                    teacher_ids,
+                ):
+                    teaching.setdefault(r["teacher_id"], []).append(r["name"])
+            for u in users:
+                if u["role"] == "teacher":
+                    u["classNames"] = teaching.get(u["id"], [])
             conn.close()
-            self.send_json({"users": [dict(r) for r in rows]})
+            self.send_json({"users": users})
+            return
+
+        if path == "/api/classes":
+            user = self.require_role("admin", "teacher")
+            if not user:
+                return
+            conn = get_db()
+            if user["role"] == "teacher":
+                classes = get_teacher_classes(conn, user["id"])
+                conn.close()
+                self.send_json({"classes": classes})
+                return
+            rows = conn.execute(
+                "SELECT id, name, year_level, course FROM classes ORDER BY name"
+            ).fetchall()
+            classes = []
+            for r in rows:
+                c = dict(r)
+                teachers = conn.execute(
+                    """SELECT u.id, u.name FROM users u
+                       JOIN class_teachers ct ON ct.teacher_id = u.id
+                       WHERE ct.class_id = ? ORDER BY u.name""",
+                    (c["id"],),
+                ).fetchall()
+                c["teachers"] = [dict(t) for t in teachers]
+                c["studentCount"] = conn.execute(
+                    "SELECT COUNT(*) c FROM users WHERE role = 'student' AND class_id = ?", (c["id"],)
+                ).fetchone()["c"]
+                classes.append(c)
+            conn.close()
+            self.send_json({"classes": classes})
             return
 
         if path == "/api/overview":
@@ -377,6 +532,10 @@ class CheeklyHandler(BaseHTTPRequestHandler):
                 self.send_json({"error": "Invalid status."}, 400)
                 return
             conn = get_db()
+            if not teacher_can_access_student(conn, user, student_id):
+                conn.close()
+                self.send_json({"error": "That student isn't in one of your classes."}, 403)
+                return
             conn.execute(
                 """INSERT INTO attendance (student_id, att_date, status, marked_by)
                    VALUES (?,?,?,?)
@@ -394,8 +553,13 @@ class CheeklyHandler(BaseHTTPRequestHandler):
             if not user:
                 return
             att_date = parse_date_param(body.get("date"))
+            class_id = body.get("classId")
             conn = get_db()
-            students = get_students_with_status(conn, att_date)
+            if user["role"] == "teacher" and not teacher_teaches_class(conn, user["id"], class_id):
+                conn.close()
+                self.send_json({"error": "That's not one of your classes."}, 403)
+                return
+            students = get_students_with_status(conn, att_date, class_id=class_id)
             marked = 0
             for s in students:
                 if s["status"] == "UNMARKED":
@@ -419,6 +583,10 @@ class CheeklyHandler(BaseHTTPRequestHandler):
             student_id = body.get("studentId")
             att_date = parse_date_param(body.get("date"))
             conn = get_db()
+            if not teacher_can_access_student(conn, user, student_id):
+                conn.close()
+                self.send_json({"error": "That student isn't in one of your classes."}, 403)
+                return
             conn.execute(
                 "DELETE FROM attendance WHERE student_id = ? AND att_date = ?",
                 (student_id, att_date),
@@ -443,11 +611,13 @@ class CheeklyHandler(BaseHTTPRequestHandler):
             created = 0
             errors = []
             conn = get_db()
+            all_classes = {c["name"].strip().lower(): c["id"] for c in conn.execute("SELECT id, name FROM classes")}
             for i, row in enumerate(rows):
                 name = (row.get("name") or "").strip()
                 email = (row.get("email") or "").strip().lower()
                 password = row.get("password") or ""
                 role = row.get("role") or "student"
+                class_name = (row.get("class") or "").strip()
                 label = email or name or f"row {i + 1}"
                 if role not in ("admin", "teacher", "student"):
                     errors.append({"row": label, "error": "Invalid role."})
@@ -455,13 +625,18 @@ class CheeklyHandler(BaseHTTPRequestHandler):
                 if not name or not email or len(password) < 4:
                     errors.append({"row": label, "error": "Missing name/email or password too short."})
                     continue
+                class_id = None
+                if role == "student" and class_name:
+                    class_id = all_classes.get(class_name.lower())
+                    if class_id is None:
+                        errors.append({"row": label, "error": f"Class '{class_name}' doesn't exist - created without a class."})
                 existing = conn.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
                 if existing:
                     errors.append({"row": label, "error": "Email already registered."})
                     continue
                 conn.execute(
-                    "INSERT INTO users (name, email, password_hash, role) VALUES (?,?,?,?)",
-                    (name, email, hash_password(password), role),
+                    "INSERT INTO users (name, email, password_hash, role, class_id) VALUES (?,?,?,?,?)",
+                    (name, email, hash_password(password), role, class_id),
                 )
                 created += 1
             conn.commit()
@@ -477,6 +652,8 @@ class CheeklyHandler(BaseHTTPRequestHandler):
             name = (body.get("name") or "").strip()
             email = (body.get("email") or "").strip().lower()
             role = body.get("role") or "student"
+            # classId is only meaningful for students; null/omitted clears it.
+            class_id = body.get("classId") if role == "student" else None
             if not name or not email:
                 self.send_json({"error": "Name and email are required."}, 400)
                 return
@@ -491,9 +668,110 @@ class CheeklyHandler(BaseHTTPRequestHandler):
                 conn.close()
                 self.send_json({"error": "That email is already registered."}, 400)
                 return
+            if class_id is not None:
+                exists = conn.execute("SELECT id FROM classes WHERE id = ?", (class_id,)).fetchone()
+                if not exists:
+                    conn.close()
+                    self.send_json({"error": "That class doesn't exist."}, 400)
+                    return
             conn.execute(
-                "UPDATE users SET name = ?, email = ?, role = ? WHERE id = ?",
-                (name, email, role, target_id),
+                "UPDATE users SET name = ?, email = ?, role = ?, class_id = ? WHERE id = ?",
+                (name, email, role, class_id, target_id),
+            )
+            conn.commit()
+            conn.close()
+            self.send_json({"ok": True})
+            return
+
+        if path == "/api/classes/create":
+            user = self.require_role("admin")
+            if not user:
+                return
+            name = (body.get("name") or "").strip()
+            year_level = (body.get("yearLevel") or "").strip()
+            course = (body.get("course") or "").strip()
+            if not name:
+                self.send_json({"error": "Class name is required."}, 400)
+                return
+            conn = get_db()
+            cur = conn.execute(
+                "INSERT INTO classes (name, year_level, course) VALUES (?,?,?)",
+                (name, year_level, course),
+            )
+            conn.commit()
+            new_id = cur.lastrowid
+            conn.close()
+            self.send_json({"ok": True, "id": new_id})
+            return
+
+        if path == "/api/classes/update":
+            user = self.require_role("admin")
+            if not user:
+                return
+            class_id = body.get("id")
+            name = (body.get("name") or "").strip()
+            year_level = (body.get("yearLevel") or "").strip()
+            course = (body.get("course") or "").strip()
+            if not name:
+                self.send_json({"error": "Class name is required."}, 400)
+                return
+            conn = get_db()
+            conn.execute(
+                "UPDATE classes SET name = ?, year_level = ?, course = ? WHERE id = ?",
+                (name, year_level, course, class_id),
+            )
+            conn.commit()
+            conn.close()
+            self.send_json({"ok": True})
+            return
+
+        if path == "/api/classes/delete":
+            user = self.require_role("admin")
+            if not user:
+                return
+            class_id = body.get("id")
+            conn = get_db()
+            # Unassign students first - the FK would otherwise block deletion.
+            conn.execute("UPDATE users SET class_id = NULL WHERE class_id = ?", (class_id,))
+            conn.execute("DELETE FROM classes WHERE id = ?", (class_id,))
+            conn.commit()
+            conn.close()
+            self.send_json({"ok": True})
+            return
+
+        if path == "/api/classes/teachers/add":
+            user = self.require_role("admin")
+            if not user:
+                return
+            class_id = body.get("classId")
+            teacher_id = body.get("teacherId")
+            conn = get_db()
+            teacher = conn.execute(
+                "SELECT id FROM users WHERE id = ? AND role = 'teacher'", (teacher_id,)
+            ).fetchone()
+            if not teacher:
+                conn.close()
+                self.send_json({"error": "That user isn't a teacher."}, 400)
+                return
+            conn.execute(
+                "INSERT OR IGNORE INTO class_teachers (class_id, teacher_id) VALUES (?,?)",
+                (class_id, teacher_id),
+            )
+            conn.commit()
+            conn.close()
+            self.send_json({"ok": True})
+            return
+
+        if path == "/api/classes/teachers/remove":
+            user = self.require_role("admin")
+            if not user:
+                return
+            class_id = body.get("classId")
+            teacher_id = body.get("teacherId")
+            conn = get_db()
+            conn.execute(
+                "DELETE FROM class_teachers WHERE class_id = ? AND teacher_id = ?",
+                (class_id, teacher_id),
             )
             conn.commit()
             conn.close()
@@ -543,6 +821,7 @@ class CheeklyHandler(BaseHTTPRequestHandler):
         email = (body.get("email") or "").strip().lower()
         password = body.get("password") or ""
         role = body.get("role") or "student"
+        class_id = body.get("classId") if role == "student" else None
 
         if role not in ("admin", "teacher", "student"):
             self.send_json({"error": "Invalid role."}, 400)
@@ -560,9 +839,15 @@ class CheeklyHandler(BaseHTTPRequestHandler):
             conn.close()
             self.send_json({"error": "That email is already registered."}, 400)
             return
+        if class_id is not None:
+            exists = conn.execute("SELECT id FROM classes WHERE id = ?", (class_id,)).fetchone()
+            if not exists:
+                conn.close()
+                self.send_json({"error": "That class doesn't exist."}, 400)
+                return
         cur = conn.execute(
-            "INSERT INTO users (name, email, password_hash, role) VALUES (?,?,?,?)",
-            (name, email, hash_password(password), role),
+            "INSERT INTO users (name, email, password_hash, role, class_id) VALUES (?,?,?,?,?)",
+            (name, email, hash_password(password), role, class_id),
         )
         conn.commit()
         new_id = cur.lastrowid
