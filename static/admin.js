@@ -339,13 +339,13 @@ function renderUserRow(u) {
             .join("");
         return `
             <tr data-row-for="${u.id}">
-                <td><input class="custom-inp" type="text" id="edit-name-${u.id}" value="${escapeHtml(u.name)}"></td>
-                <td><input class="custom-inp" type="text" id="edit-email-${u.id}" value="${escapeHtml(u.email)}"></td>
-                <td><select class="custom-inp custom-select" id="edit-role-${u.id}">${roleOptions}</select></td>
-                <td><select class="custom-inp custom-select" id="edit-class-${u.id}">${classOptions}</select></td>
-                <td class="row-actions">
-                    <button type="button" class="btn btn-solid" data-save-edit="${u.id}">Save</button>
-                    <button type="button" class="btn btn-outline" data-cancel-edit="${u.id}">Cancel</button>
+                <td data-label="Name"><input class="custom-inp table-edit-inp" type="text" id="edit-name-${u.id}" value="${escapeHtml(u.name)}"></td>
+                <td data-label="Email"><input class="custom-inp table-edit-inp" type="text" id="edit-email-${u.id}" value="${escapeHtml(u.email)}"></td>
+                <td data-label="Role"><select class="custom-inp custom-select table-edit-inp" id="edit-role-${u.id}">${roleOptions}</select></td>
+                <td data-label="Class"><select class="custom-inp custom-select table-edit-inp" id="edit-class-${u.id}">${classOptions}</select></td>
+                <td data-label="" class="row-actions">
+                    <button type="button" class="row-icon-btn row-icon-save" data-save-edit="${u.id}" title="Save changes" aria-label="Save changes">&#10003;</button>
+                    <button type="button" class="row-icon-btn row-icon-cancel" data-cancel-edit="${u.id}" title="Cancel" aria-label="Cancel">&#10005;</button>
                 </td>
             </tr>`;
     }
@@ -369,14 +369,14 @@ function renderUserRow(u) {
     const isSelf = String(u.id) === String(currentUserId);
     return `
         <tr>
-            <td>${escapeHtml(u.name)}</td>
-            <td>${escapeHtml(u.email)}</td>
-            <td><span class="role-tag role-${u.role}">${u.role}</span></td>
-            <td>${classCell}</td>
-            <td class="row-actions">
-                <button type="button" class="btn btn-outline" data-edit-user="${u.id}">Edit</button>
-                <button type="button" class="btn btn-outline" data-reset-password="${u.id}">Reset password</button>
-                ${isSelf ? "" : `<button type="button" class="btn btn-outline" data-delete-user="${u.id}">Delete</button>`}
+            <td data-label="Name" title="${escapeHtml(u.name)}">${escapeHtml(u.name)}</td>
+            <td data-label="Email" title="${escapeHtml(u.email)}">${escapeHtml(u.email)}</td>
+            <td data-label="Role"><span class="role-tag role-${u.role}">${u.role}</span></td>
+            <td data-label="Class">${classCell}</td>
+            <td data-label="" class="row-actions">
+                <button type="button" class="row-icon-btn row-icon-edit" data-edit-user="${u.id}" title="Edit account" aria-label="Edit account">&#9998;</button>
+                <button type="button" class="row-icon-btn row-icon-reset" data-reset-password="${u.id}" title="Reset password" aria-label="Reset password">&#8635;</button>
+                ${isSelf ? "" : `<button type="button" class="row-icon-btn row-icon-delete" data-delete-user="${u.id}" title="Delete account" aria-label="Delete account">&#10005;</button>`}
             </td>
         </tr>`;
 }
