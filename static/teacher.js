@@ -1,4 +1,6 @@
 let allStudents = [];
+let myClasses = [];
+let currentClassId = null;
 let currentDate = null; // ISO date currently being viewed/marked
 let todayIso = null;    // the server's notion of "today" - can't navigate past this
 
@@ -17,6 +19,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const statusFilter = document.getElementById("student-status-filter");
     statusFilter.addEventListener("change", () => renderStudents(visibleStudents()));
+
+    document.getElementById("class-select").addEventListener("change", (e) => {
+        currentClassId = Number(e.target.value);
+        loadStudents(currentDate);
+    });
 
     document.getElementById("date-prev").addEventListener("click", () => loadStudents(shiftDate(currentDate, -1)));
     document.getElementById("date-next").addEventListener("click", () => loadStudents(shiftDate(currentDate, 1)));
@@ -40,19 +47,48 @@ async function loadStudents(date) {
     container.innerHTML = "";
     container.appendChild(skeletonBlocks(6, "skeleton-card"));
 
+    const params = new URLSearchParams();
+    if (date) params.set("date", date);
+    if (currentClassId) params.set("classId", currentClassId);
+
     try {
-        const data = await apiGet(`/api/students${date ? `?date=${date}` : ""}`);
+        const data = await apiGet(`/api/students?${params.toString()}`);
         allStudents = data.students;
+        myClasses = data.classes || [];
+        currentClassId = data.currentClassId;
         currentDate = data.date;
         todayIso = data.today;
+        updateClassSelect();
         updateDateControls();
     } catch (err) {
         container.innerHTML = "";
         toast(err.message, "error");
         return;
     }
+
+    if (myClasses.length === 0) {
+        container.innerHTML = '<div class="empty-state">You haven\'t been assigned to a class yet. Ask an admin to add you to one.</div>';
+        renderSummary([]);
+        document.getElementById("mark-all-btn").disabled = true;
+        return;
+    }
+
+    document.getElementById("mark-all-btn").disabled = false;
     renderSummary(allStudents);
     renderStudents(visibleStudents());
+}
+
+function updateClassSelect() {
+    const select = document.getElementById("class-select");
+    if (myClasses.length <= 1) {
+        select.hidden = true;
+        select.innerHTML = "";
+        return;
+    }
+    select.hidden = false;
+    select.innerHTML = myClasses
+        .map((c) => `<option value="${c.id}" ${c.id === currentClassId ? "selected" : ""}>${escapeHtml(c.name)}</option>`)
+        .join("");
 }
 
 function updateDateControls() {
@@ -126,7 +162,7 @@ async function markAllPresent() {
     const btn = document.getElementById("mark-all-btn");
     btn.disabled = true;
     try {
-        const result = await apiPost("/api/attendance/mark-all", { date: currentDate });
+        const result = await apiPost("/api/attendance/mark-all", { date: currentDate, classId: currentClassId });
         if (result.marked > 0) {
             toast(`Marked ${result.marked} student${result.marked === 1 ? "" : "s"} present.`);
         } else {
