@@ -701,7 +701,7 @@ body.auth-body {
 
 /* Column proportions - only while the table renders as an actual table.
    The mobile stacked-card layout below resets these to full width. */
-@media (min-width: 481px) {
+@media (min-width: 701px) {
     .users-table th:nth-child(1), .users-table td:nth-child(1) { width: 21%; }
     .users-table th:nth-child(2), .users-table td:nth-child(2) { width: 29%; }
     .users-table th:nth-child(3), .users-table td:nth-child(3) { width: 13%; }
@@ -990,7 +990,29 @@ body.auth-body {
         padding: 12px;
     }
 
-    /* Turn the users table into a stack of labeled rows on small screens */
+    .attendance-history {
+        width: 100%;
+        padding: 0 12px;
+    }
+
+    .history-row {
+        font-size: 12px;
+        padding: 10px 12px;
+    }
+
+    .login-container, .main-homepage-container {
+        overflow-x: hidden;
+    }
+}
+
+/* Turn the users table into a stack of labeled rows below tablet width -
+   name, email, role, class and the action icons don't have room to share
+   five fixed columns much below 700px, so it becomes a card per account. */
+@media (max-width: 700px) {
+    .users-table {
+        min-width: 0;
+    }
+
     .users-table thead {
         display: none;
     }
@@ -1018,11 +1040,13 @@ body.auth-body {
         align-items: center;
         border-bottom: 1px solid rgba(51, 44, 34, 0.08);
         padding: 6px 0;
+        white-space: normal;
     }
 
     .users-table td:last-child {
         border-bottom: none;
         justify-content: flex-end;
+        gap: 8px;
     }
 
     .users-table td::before {
@@ -1035,20 +1059,6 @@ body.auth-body {
 
     .users-table td[data-label=""]::before {
         content: none;
-    }
-
-    .attendance-history {
-        width: 100%;
-        padding: 0 12px;
-    }
-
-    .history-row {
-        font-size: 12px;
-        padding: 10px 12px;
-    }
-
-    .login-container, .main-homepage-container {
-        overflow-x: hidden;
     }
 }
 
@@ -1553,8 +1563,8 @@ body.auth-body {
 
 .row-actions {
     display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
+    flex-wrap: nowrap;
+    gap: 6px;
     justify-content: flex-end;
 }
 
