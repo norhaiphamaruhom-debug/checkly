@@ -1361,6 +1361,159 @@ body.auth-body {
 .legend-absent { background: var(--absent); }
 
 /* =========================================================================
+   CLASSES PANEL (roster cards - a stack of pinned index cards, not a
+   generic settings list. Each class gets a tab-like label edge and a
+   wood-toned rule under the title, echoing the frame/board relationship
+   used everywhere else in the app.)
+   ========================================================================= */
+
+.classes-section .list-title {
+    margin-bottom: 12px;
+}
+
+.create-class-form {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 14px;
+    margin-bottom: 18px;
+    background: rgba(156, 107, 65, 0.07);
+    border: 1.5px dashed rgba(156, 107, 65, 0.4);
+    border-radius: 8px;
+}
+
+.create-class-form .custom-inp {
+    flex: 1 1 180px;
+    width: auto;
+    height: 40px;
+}
+
+.create-class-form .btn {
+    flex: 0 0 auto;
+    height: 40px;
+}
+
+.classes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.class-card {
+    position: relative;
+    background: var(--card);
+    border: 1px solid rgba(51, 44, 34, 0.14);
+    border-left: 4px solid var(--wood);
+    border-radius: 4px 8px 8px 4px;
+    padding: 14px 16px;
+    box-shadow: 2px 2px 0 rgba(51, 44, 34, 0.04);
+}
+
+.class-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.class-card-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 24px;
+    color: var(--board);
+    line-height: 1;
+}
+
+.class-card-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.class-card-meta {
+    display: flex;
+    gap: 8px;
+    margin: 10px 0 8px;
+    flex-wrap: wrap;
+}
+
+.class-card-meta span {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    background: rgba(51, 44, 34, 0.06);
+    border-radius: 999px;
+    padding: 3px 10px;
+}
+
+.class-card-teachers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(51, 44, 34, 0.1);
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(47, 74, 59, 0.1);
+    color: var(--board);
+    border-radius: 999px;
+    padding: 4px 6px 4px 12px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.chip-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(47, 74, 59, 0.18);
+    color: var(--board);
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1;
+    opacity: 0.75;
+}
+
+.chip-remove:hover {
+    opacity: 1;
+    background: var(--absent);
+    color: white;
+}
+
+.add-teacher-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.add-teacher-row .custom-select {
+    width: auto;
+    flex: 1 1 auto;
+    height: 34px;
+    font-size: 12px;
+}
+
+.add-teacher-row .btn {
+    padding: 6px 14px;
+    font-size: 12px;
+}
+
+.empty-inline {
+    color: var(--ink-soft);
+    font-size: 12px;
+    font-style: italic;
+}
+
+/* =========================================================================
    ADMIN: inline row editing, password reset, bulk import, trends
    ========================================================================= */
 
@@ -1399,6 +1552,16 @@ body.auth-body {
 .row-btn-reset { background: var(--late); }
 .row-btn-delete { background: var(--absent); }
 
+.role-tag {
+    text-transform: capitalize;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: rgba(51, 44, 34, 0.08);
+    color: var(--ink);
+    font-size: 11px;
+    font-weight: 700;
+}
+
 .import-panel {
     margin-top: 18px;
     padding-top: 14px;
@@ -1434,6 +1597,11 @@ body.auth-body {
 
 .import-errors div {
     padding: 2px 0;
+}
+
+.import-error-row {
+    font-size: 0.85em;
+    color: #c0392b;
 }
 
 .trends-panel {
