@@ -1478,12 +1478,31 @@ body.auth-body {
     padding: 3px 10px;
 }
 
+.class-card-section-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    margin-top: 12px;
+    margin-bottom: 6px;
+}
+
+.class-card-section-label.divider {
+    padding-top: 10px;
+    border-top: 1px solid rgba(51, 44, 34, 0.1);
+}
+
 .class-card-teachers {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    padding-top: 10px;
-    border-top: 1px solid rgba(51, 44, 34, 0.1);
+}
+
+.class-card-students {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
 }
 
 .chip {
@@ -1518,6 +1537,11 @@ body.auth-body {
     opacity: 1;
     background: var(--absent);
     color: white;
+}
+
+.chip-student {
+    background: rgba(156, 107, 65, 0.16);
+    color: var(--wood);
 }
 
 .add-teacher-row {
