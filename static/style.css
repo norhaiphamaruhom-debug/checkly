@@ -1588,8 +1588,6 @@ body.auth-body {
     flex-wrap: wrap;
     gap: 5px;
     justify-content: flex-end;
-    padding-right: 0;
-    margin-right: -4px;
 }
 
 /* Compact circular icon buttons for table row actions - same round-button
