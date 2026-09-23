@@ -675,7 +675,7 @@ body.auth-body {
 
 .users-table {
     width: 100%;
-    min-width: 460px;
+    min-width: 520px;
     table-layout: fixed;
     border-collapse: collapse;
     font-size: 12px;
@@ -706,7 +706,7 @@ body.auth-body {
     .users-table th:nth-child(2), .users-table td:nth-child(2) { width: 29%; }
     .users-table th:nth-child(3), .users-table td:nth-child(3) { width: 13%; }
     .users-table th:nth-child(4), .users-table td:nth-child(4) { width: 19%; }
-    .users-table th:nth-child(5), .users-table td:nth-child(5) { width: 18%; white-space: normal; }
+    .users-table th:nth-child(5), .users-table td:nth-child(5) { width: 18%; white-space: normal; overflow: visible; text-overflow: clip; }
 }
 
 .users-table td .custom-select,
@@ -1598,12 +1598,12 @@ body.auth-body {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
     border: none;
     border-radius: 50%;
     color: white;
-    font-size: 12px;
+    font-size: 11px;
     line-height: 1;
     cursor: pointer;
     transition: filter 0.15s ease, transform 0.1s ease;
