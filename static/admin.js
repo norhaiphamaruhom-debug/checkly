@@ -150,6 +150,13 @@ function renderClassesList() {
                 </div>`
                 : "";
 
+            const classStudents = allUsers.filter((u) => u.role === "student" && u.class_id === c.id);
+            const studentChips = classStudents.length
+                ? classStudents
+                      .map((s) => `<span class="chip chip-student">${escapeHtml(s.name)}</span>`)
+                      .join("")
+                : '<span class="empty-inline">No students yet</span>';
+
             return `
             <div class="class-card">
                 <div class="class-card-header">
@@ -164,8 +171,11 @@ function renderClassesList() {
                     ${c.course ? `<span>${escapeHtml(c.course)}</span>` : ""}
                     <span>${c.studentCount} student${c.studentCount === 1 ? "" : "s"}</span>
                 </div>
+                <div class="class-card-section-label">Teachers</div>
                 <div class="class-card-teachers">${teacherChips}</div>
                 ${addTeacherControl}
+                <div class="class-card-section-label divider">Students (${classStudents.length})</div>
+                <div class="class-card-students">${studentChips}</div>
             </div>`;
         })
         .join("");
