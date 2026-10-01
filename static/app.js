@@ -46,6 +46,130 @@ function roleHome(role) {
     return "student.html";
 }
 
+// Menu items per role. "view" items switch in-page sections (admin);
+// "click" items trigger an existing button on the page by id.
+const NAV_ITEMS = {
+    admin: [
+        { label: "Overview", view: "overview" },
+        { label: "Classes", view: "classes" },
+        { label: "All accounts", view: "accounts" },
+        { label: "Add account", view: "add" },
+    ],
+    teacher: [
+        { label: "Mark attendance", top: true },
+        { label: "Mark all present", click: "mark-all-btn" },
+        { label: "Print roster", click: "print-btn" },
+    ],
+    student: [
+        { label: "Today", top: true },
+        { label: "History (list)", click: "view-list-btn", scroll: "list-view" },
+        { label: "History (calendar)", click: "view-calendar-btn", scroll: "calendar-view" },
+        { label: "Export as CSV", click: "export-csv-btn" },
+    ],
+};
+
+function showNavView(name) {
+    const views = document.querySelectorAll(".nav-view");
+    if (!views.length) return;
+    let found = false;
+    views.forEach((v) => { if (v.dataset.view === name) found = true; });
+    if (!found) name = views[0].dataset.view;
+    views.forEach((v) => { v.hidden = v.dataset.view !== name; });
+    document.querySelectorAll(".nav-link[data-view]").forEach((a) => {
+        a.classList.toggle("active", a.dataset.view === name);
+    });
+    window.scrollTo(0, 0);
+}
+
+function buildBurgerMenu(user) {
+    const topbar = document.querySelector(".topbar");
+    if (!topbar || topbar.querySelector(".burger-btn")) return;
+    const items = NAV_ITEMS[user.role] || [];
+
+    const burger = document.createElement("button");
+    burger.type = "button";
+    burger.className = "burger-btn";
+    burger.setAttribute("aria-label", "Open menu");
+    burger.setAttribute("aria-expanded", "false");
+    burger.innerHTML = "<span></span><span></span><span></span>";
+    topbar.insertBefore(burger, topbar.firstChild);
+
+    const backdrop = document.createElement("div");
+    backdrop.className = "nav-backdrop";
+    const drawer = document.createElement("nav");
+    drawer.className = "nav-drawer";
+    drawer.setAttribute("aria-label", "Main menu");
+
+    const head = document.createElement("div");
+    head.className = "nav-drawer-head";
+    head.textContent = "Checkly";
+    drawer.appendChild(head);
+
+    items.forEach((item) => {
+        const a = document.createElement("a");
+        a.href = item.view ? `#${item.view}` : "#";
+        a.className = "nav-link";
+        a.textContent = item.label;
+        if (item.view) a.dataset.view = item.view;
+        a.addEventListener("click", (e) => {
+            e.preventDefault();
+            close();
+            if (item.view) {
+                history.replaceState(null, "", `#${item.view}`);
+                showNavView(item.view);
+            } else if (item.top) {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            } else if (item.click) {
+                const target = document.getElementById(item.click);
+                if (target) target.click();
+                if (item.scroll) {
+                    const section = document.getElementById(item.scroll);
+                    if (section) section.scrollIntoView({ behavior: "smooth" });
+                }
+            }
+        });
+        drawer.appendChild(a);
+    });
+
+    const logout = document.createElement("button");
+    logout.type = "button";
+    logout.className = "nav-link nav-logout";
+    logout.textContent = "Log out";
+    logout.addEventListener("click", doLogout);
+    drawer.appendChild(logout);
+
+    document.body.appendChild(backdrop);
+    document.body.appendChild(drawer);
+
+    function open() {
+        document.body.classList.add("nav-open");
+        burger.setAttribute("aria-expanded", "true");
+    }
+    function close() {
+        document.body.classList.remove("nav-open");
+        burger.setAttribute("aria-expanded", "false");
+    }
+    burger.addEventListener("click", () => {
+        document.body.classList.contains("nav-open") ? close() : open();
+    });
+    backdrop.addEventListener("click", close);
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+
+    // Admin: show the section named in the URL hash (or the first one).
+    if (document.querySelector(".nav-view")) {
+        showNavView(location.hash.slice(1));
+        window.addEventListener("hashchange", () => showNavView(location.hash.slice(1)));
+    }
+}
+
+async function doLogout() {
+    try {
+        await apiPost("/api/logout");
+    } finally {
+        window.location.href = "index.html";
+    }
+}
+
 function wireTopbar(user) {
     const nameEl = document.querySelector(".account-name");
     if (nameEl) {
@@ -54,15 +178,9 @@ function wireTopbar(user) {
     }
 
     const logoutBtn = document.querySelector(".logout-button");
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", async () => {
-            try {
-                await apiPost("/api/logout");
-            } finally {
-                window.location.href = "index.html";
-            }
-        });
-    }
+    if (logoutBtn) logoutBtn.addEventListener("click", doLogout);
+
+    buildBurgerMenu(user);
 }
 
 function showFormError(formEl, message) {

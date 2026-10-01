@@ -17,6 +17,7 @@
     </div>
 
     <div class="admin-container">
+        <div class="nav-view" data-view="overview">
         <div class="dashboard-header">
             <div class="list-title">Overview</div>
             <div class="date-pill" id="today-date"></div>
@@ -34,7 +35,9 @@
                 <span><i class="legend-dot legend-absent"></i>Absent</span>
             </div>
         </div>
+        </div>
 
+        <div class="nav-view" data-view="classes" hidden>
         <div class="admin-panel classes-section">
             <div class="list-title">Classes</div>
             <form id="create-class-form" class="create-class-form">
@@ -45,9 +48,10 @@
             </form>
             <div id="classes-list" class="classes-list"></div>
         </div>
+        </div>
 
         <div class="admin-columns">
-            <div class="admin-panel">
+            <div class="admin-panel nav-view" data-view="accounts" hidden>
                 <div class="list-title">All accounts</div>
                 <input class="custom-inp search-input" type="text" id="user-search" placeholder="Search by name or email...">
                 <div class="table-scroll">
@@ -60,7 +64,7 @@
                 </div>
             </div>
 
-            <div class="admin-panel">
+            <div class="admin-panel nav-view" data-view="add" hidden>
                 <div class="list-title">Add account</div>
                 <form id="create-user-form" class="create-user-form">
                     <label class="custom-label" for="new-name">Full name</label>
