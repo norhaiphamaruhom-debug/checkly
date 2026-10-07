@@ -1,36 +1,80 @@
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("register-form");
+    const review = document.getElementById("review-card");
     const nameInput = document.getElementById("name");
     const emailInput = document.getElementById("email");
     const passwordInput = document.getElementById("password");
-    const roleInputs = document.querySelectorAll('input[name="role"]');
-    const adminCodeGroup = document.getElementById("admin-code-group");
-    const adminCodeInput = document.getElementById("adminCode");
+    const password2Input = document.getElementById("password2");
+    const confirmBtn = document.getElementById("confirm-btn");
+    let showPassword = false;
 
-    function getSelectedRole() {
-        const checked = document.querySelector('input[name="role"]:checked');
-        return checked ? checked.value : "student";
+    function showStep(step) {
+        form.hidden = step !== "form";
+        review.hidden = step !== "review";
+        window.scrollTo(0, 0);
+        const focusEl = step === "review" ? confirmBtn : nameInput;
+        focusEl.focus();
     }
 
-    roleInputs.forEach((input) => {
-        input.addEventListener("change", () => {
-            adminCodeGroup.hidden = getSelectedRole() !== "admin";
-        });
+    // Returns an error message, or "" when everything looks fine.
+    function validate() {
+        const name = nameInput.value.trim();
+        const email = emailInput.value.trim();
+        if (!name) return "Please enter your full name.";
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Please enter a valid email address.";
+        if (passwordInput.value.length < 4) return "Password must be at least 4 characters.";
+        if (passwordInput.value !== password2Input.value) return "The two passwords don't match.";
+        return "";
+    }
+
+    function renderReview() {
+        document.getElementById("review-name").textContent = nameInput.value.trim();
+        document.getElementById("review-email").textContent = emailInput.value.trim().toLowerCase();
+        const pw = passwordInput.value;
+        document.getElementById("review-password").textContent = showPassword ? pw : "\u2022".repeat(pw.length);
+        const toggle = document.getElementById("review-toggle");
+        toggle.textContent = showPassword ? "Hide" : "Show";
+        toggle.setAttribute("aria-pressed", String(showPassword));
+    }
+
+    // Step 1: check the form, then show the review screen. Nothing is sent yet.
+    form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const problem = validate();
+        if (problem) {
+            showFormError(form, problem);
+            return;
+        }
+        showPassword = false;
+        renderReview();
+        showStep("review");
     });
 
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
+    document.getElementById("review-toggle").addEventListener("click", () => {
+        showPassword = !showPassword;
+        renderReview();
+    });
+
+    // Back to editing - everything they typed is still there.
+    document.getElementById("edit-btn").addEventListener("click", () => showStep("form"));
+
+    // Step 2: only now is the account actually created.
+    confirmBtn.addEventListener("click", async () => {
+        confirmBtn.disabled = true;
         try {
+            // Self-signup always creates a student; the server enforces this too.
             await apiPost("/api/register", {
                 name: nameInput.value.trim(),
                 email: emailInput.value.trim(),
                 password: passwordInput.value,
-                role: getSelectedRole(),
-                adminCode: adminCodeInput.value,
             });
+            try { sessionStorage.setItem("checkly-just-registered", emailInput.value.trim().toLowerCase()); } catch (err) { /* ignore */ }
             window.location.href = "index.html";
         } catch (err) {
+            // e.g. "email already registered" - send them back to fix it.
+            showStep("form");
             showFormError(form, err.message);
+            confirmBtn.disabled = false;
         }
     });
 });

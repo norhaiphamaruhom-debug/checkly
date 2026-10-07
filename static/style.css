@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&display=swap');
 
 /* ==========================================================================
    CHECKLY - "composition notebook" theme.
@@ -9,8 +9,8 @@
    ========================================================================== */
 
 :root {
-    --font-display: "Caveat", cursive;
-    --font-body: "Nunito", sans-serif;
+    --font-display: "Nunito", "Segoe UI", Arial, sans-serif;
+    --font-body: "Nunito", "Segoe UI", Arial, sans-serif;
 
     --paper: #F7F1E1;
     --paper-line: rgba(112, 145, 184, 0.28);
@@ -75,8 +75,8 @@ body {
     color: white;
     text-transform: capitalize;
     font-family: var(--font-display);
-    font-size: 20px;
-    font-weight: 700;
+    font-size: 17px;
+    font-weight: 800;
 }
 
 .logout-button {
@@ -119,8 +119,8 @@ body {
 
 .list-title {
     font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 30px;
+    font-weight: 800;
+    font-size: 26px;
     margin-top: 20px;
     margin-bottom: 5px;
     color: var(--board);
@@ -236,7 +236,7 @@ body.auth-body {
 .auth-wordmark {
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: clamp(44px, 7vw, 64px);
+    font-size: clamp(40px, 7vw, 56px);
     line-height: 1;
     color: white;
 }
@@ -338,8 +338,9 @@ body.auth-body {
 
 .auth-heading {
     font-family: var(--font-display);
-    font-weight: 700;
-    font-size: clamp(32px, 6vw, 42px);
+    font-weight: 800;
+    font-size: clamp(28px, 5vw, 34px);
+    line-height: 1.15;
     color: var(--board);
 }
 
@@ -470,7 +471,8 @@ body.auth-body {
     }
 
     .auth-form-panel {
-        flex: none;
+        flex: 1 0 auto;
+        align-items: flex-start;
         padding: 32px 20px 48px;
     }
 }
@@ -635,8 +637,8 @@ body.auth-body {
 
 .stat-value {
     font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 32px;
+    font-weight: 800;
+    font-size: 30px;
     color: var(--board);
 }
 
@@ -1320,8 +1322,8 @@ body.auth-body {
 
 .calendar-month-label {
     font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 22px;
+    font-weight: 800;
+    font-size: 19px;
     color: var(--board);
     min-width: 160px;
     text-align: center;
@@ -1451,10 +1453,10 @@ body.auth-body {
 
 .class-card-title {
     font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 24px;
+    font-weight: 800;
+    font-size: 20px;
     color: var(--board);
-    line-height: 1;
+    line-height: 1.25;
 }
 
 .class-card-actions {
@@ -1830,8 +1832,8 @@ body.auth-body {
 .nav-drawer-head {
     padding: 18px 20px;
     font-family: var(--font-display);
-    font-size: 30px;
-    font-weight: 700;
+    font-size: 24px;
+    font-weight: 800;
     color: white;
     border-bottom: 1px solid rgba(255, 255, 255, 0.18);
 }
@@ -1865,3 +1867,401 @@ body.auth-body {
 @media (prefers-reduced-motion: reduce) {
     .nav-drawer, .nav-backdrop, .burger-btn span { transition: none; }
 }
+
+
+/* --- Admin: People view (role filter tabs, inline role menu) --- */
+.panel-hint {
+    margin: 2px 0 10px;
+    font-size: 12px;
+    color: var(--ink-soft);
+}
+
+.role-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.filter-tab {
+    font: inherit;
+    font-size: 12px;
+    padding: 6px 12px;
+    border: 1px solid rgba(51, 44, 34, 0.25);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+}
+
+.filter-tab:hover { background: rgba(51, 44, 34, 0.06); }
+.filter-tab:focus-visible { outline: 2px solid var(--board); outline-offset: 2px; }
+
+.filter-tab.active {
+    background: var(--board);
+    border-color: var(--board);
+    color: #fff;
+    font-weight: 700;
+}
+
+.filter-count { opacity: 0.75; margin-left: 2px; }
+
+.users-table td .role-select { text-transform: capitalize; }
+
+
+/* --- Admin: Overview "needs attention" + class card tidy-up --- */
+.admin-panel.attention-section {
+    max-width: 900px;
+    width: 90%;
+    margin: 0 auto 25px;
+    border-left: 5px solid var(--late);
+}
+
+.attention-list {
+    list-style: none;
+    margin: 8px 0 0;
+    padding: 0;
+}
+
+.attention-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(51, 44, 34, 0.12);
+    font-size: 13px;
+}
+
+.attention-list li:last-child { border-bottom: 0; }
+
+.badge-warn {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    background: rgba(201, 138, 28, 0.18);
+    color: #8a5a00;
+    vertical-align: middle;
+}
+
+.filter-notice {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    background: rgba(201, 138, 28, 0.14);
+}
+
+.filter-notice[hidden] { display: none; }
+
+.class-card-details > summary {
+    cursor: pointer;
+    list-style: none;
+}
+
+.class-card-details > summary::-webkit-details-marker { display: none; }
+.class-card-details > summary::before { content: "\25B8  "; }
+.class-card-details[open] > summary::before { content: "\25BE  "; }
+
+
+/* --- Student: class banner, toolbar, month-grouped history --- */
+.class-banner {
+    width: 90%;
+    max-width: 500px;
+    margin: 4px auto 14px;
+    padding: 10px 14px;
+    background: var(--card);
+    border: 1px solid rgba(51, 44, 34, 0.15);
+    border-left: 5px solid var(--board);
+    border-radius: 6px;
+    text-align: left;
+}
+.class-banner[hidden] { display: none; }
+.class-banner-name { font-weight: 700; color: var(--board); }
+.class-banner-meta { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+
+.history-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    width: 90%;
+    max-width: 500px;
+    margin-top: 6px;
+}
+.history-toolbar .view-toggle { margin-top: 0; }
+
+.history-month {
+    margin-top: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--board);
+}
+.history-month:first-child { margin-top: 0; }
+
+/* Let the history list use its full width now that dates carry a weekday. */
+#list-view {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+#list-view[hidden] { display: none; }
+.history-date { white-space: nowrap; }
+
+
+/* --- Teacher: clickable summary, progress, compact roster rows --- */
+.class-label {
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(51, 44, 34, 0.25);
+    background: var(--card);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--board);
+}
+.class-label[hidden] { display: none; }
+
+button.stat-filter {
+    font: inherit;
+    cursor: pointer;
+    color: var(--ink);
+}
+button.stat-filter:hover { transform: translateY(-1px); }
+button.stat-filter:focus-visible { outline: 2px solid var(--board); outline-offset: 2px; }
+button.stat-filter.is-active { box-shadow: 0 0 0 2px var(--board); }
+
+.progress-wrap {
+    width: 90%;
+    max-width: 420px;
+    margin: 10px auto 14px;
+}
+.progress-wrap[hidden] { display: none; }
+.progress-text { font-size: 12px; color: var(--ink-soft); margin-bottom: 4px; text-align: center; }
+.progress-bar {
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(51, 44, 34, 0.12);
+    overflow: hidden;
+}
+#progress-fill {
+    height: 100%;
+    width: 0;
+    background: var(--present);
+    border-radius: 999px;
+    transition: width 0.25s ease;
+}
+
+.layout-toggle { margin-top: 0; margin-left: auto; }
+
+.students-container.roster-rows {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 8px;
+    max-width: 720px;
+}
+
+.roster-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--card);
+    border: 1px solid rgba(51, 44, 34, 0.15);
+    border-radius: 8px;
+    padding: 8px 12px;
+}
+
+.roster-avatar {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.roster-main { flex: 1; min-width: 0; text-align: left; }
+.roster-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.roster-status { font-size: 11px; text-transform: capitalize; }
+
+.streak-chip {
+    display: inline-block;
+    margin-left: 4px;
+    padding: 1px 7px;
+    border-radius: 10px;
+    background: var(--absent);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.roster-row .attendance-actions { width: auto; flex: none; padding: 0; gap: 6px; }
+.roster-row .mark-btn { flex: none; min-width: 58px; padding: 7px 10px; font-size: 11px; opacity: 0.55; }
+.roster-row .mark-btn.is-current,
+.roster-row .mark-btn:hover { opacity: 1; }
+.roster-row .mark-btn.is-current { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px currentColor; }
+
+@media (max-width: 520px) {
+    .roster-row { flex-wrap: wrap; }
+    .roster-row .attendance-actions { width: 100%; }
+    .roster-row .mark-btn { flex: 1; }
+}
+
+@media print {
+    .layout-toggle, .progress-wrap, .class-label[hidden] { display: none !important; }
+    .roster-avatar { display: none; }
+    .roster-row { border: 1px solid #999; border-radius: 0; margin-bottom: 6px; padding: 6px 10px; page-break-inside: avoid; background: #fff !important; }
+    .roster-row .attendance-actions { display: none !important; }
+    .roster-status { opacity: 1; }
+}
+
+
+/* --- Change password dialog + default-password banner --- */
+.password-dialog {
+    margin: auto; /* the global reset zeroes the margin that normally centers a modal dialog */
+    border: 1px solid rgba(51, 44, 34, 0.2);
+    border-radius: 10px;
+    padding: 20px 22px;
+    width: min(92vw, 380px);
+    background: var(--card);
+    color: var(--ink);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+.password-dialog::backdrop { background: rgba(30, 40, 34, 0.55); }
+.password-dialog .dialog-title { margin: 0 0 8px; font-size: 22px; color: var(--board); }
+.password-dialog .custom-inp { width: 100%; }
+.password-dialog .custom-label { display: block; margin-top: 10px; }
+.password-dialog .form-error { margin-top: 10px; }
+.password-dialog .form-error[hidden] { display: none; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+
+.default-pw-banner {
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 8px 14px;
+    background: #f6e3b4;
+    border-bottom: 1px solid rgba(138, 90, 0, 0.35);
+    color: #6b4500;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+}
+@media print { .default-pw-banner { display: none !important; } }
+
+/* ---- multi-class: student banner + history ---- */
+.class-banner-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.class-banner-item + .class-banner-item { margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(0,0,0,0.12); }
+.history-class { display: inline-block; margin-left: 6px; font-size: 11px; color: var(--ink-soft); font-weight: 600; }
+#history-class-filter { width: auto; max-width: 180px; }
+
+/* ---- multi-class: admin people table + create form ---- */
+.membership-cell { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.add-class-select { width: auto; min-width: 110px; padding: 4px 8px; font-size: 13px; }
+.class-checks { display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; padding: 8px 10px; border: 1px dashed rgba(0,0,0,0.2); border-radius: 8px; }
+.class-check { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
+.label-hint { font-weight: 400; font-size: 12px; opacity: 0.7; }
+
+
+/* ---- navigation: labeled logout, tab bar, class tabs, clickable stats ---- */
+.logout-button {
+    width: auto; height: 30px; padding: 0 14px; border-radius: 15px;
+    background: transparent; background-image: none;
+    border: 1.5px solid rgba(255, 255, 255, 0.55); color: #fff;
+    font: 700 13px var(--font-body);
+}
+.logout-button:hover { background: rgba(255, 255, 255, 0.14); }
+.logout-button:focus-visible { outline: 2px solid var(--late); outline-offset: 2px; }
+.topbar .account-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.tab-bar { display: flex; gap: 6px; }
+.tab-link {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 8px 16px; border-radius: 999px; text-decoration: none;
+    font: 700 14px var(--font-body); color: var(--board);
+    background: var(--card); border: 1.5px solid rgba(47, 74, 59, 0.25);
+}
+.tab-link:hover { background: #fff; }
+.tab-link:focus-visible { outline: 2px solid var(--late); outline-offset: 2px; }
+.tab-link.active { background: var(--board); color: #fff; border-color: var(--board); }
+.tab-icon { font-size: 16px; line-height: 1; }
+
+/* desktop: a row of pills at the top of the page */
+@media (min-width: 881px) {
+    .tab-bar { margin: 0 0 18px; flex-wrap: wrap; justify-content: center; }
+}
+/* phones: a bottom bar you can reach with your thumb */
+@media (max-width: 880px) {
+    .tab-bar {
+        position: fixed; left: 0; right: 0; bottom: 0; z-index: 9; gap: 0;
+        background: var(--board); border-top: 4px solid var(--wood);
+        padding: 4px 4px calc(4px + env(safe-area-inset-bottom, 0px));
+    }
+    .tab-link {
+        flex: 1; flex-direction: column; gap: 2px; padding: 6px 2px;
+        border: 0; border-radius: 10px; background: transparent; color: rgba(255,255,255,0.75);
+        font-size: 12px;
+    }
+    .tab-link:hover { background: rgba(255, 255, 255, 0.1); }
+    .tab-link.active { background: var(--board-light); color: #fff; }
+    .tab-icon { font-size: 20px; }
+    body.has-tab-bar .admin-container { padding-bottom: 90px; }
+}
+@media print { .tab-bar { display: none !important; } }
+
+.class-tabs { display: flex; gap: 6px; overflow-x: auto; padding: 2px 0 10px; scrollbar-width: thin; }
+.class-tab {
+    flex: 0 0 auto; padding: 7px 16px; border-radius: 999px; cursor: pointer;
+    font: 700 14px var(--font-body); color: var(--board);
+    background: var(--card); border: 1.5px solid rgba(47, 74, 59, 0.25);
+}
+.class-tab:hover { background: #fff; }
+.class-tab:focus-visible { outline: 2px solid var(--late); outline-offset: 2px; }
+.class-tab.active { background: var(--board); color: #fff; border-color: var(--board); }
+.class-tabs[hidden] { display: none; }
+
+button.stat-link { font: inherit; text-align: center; cursor: pointer; }
+button.stat-link:hover { transform: translateY(-2px); box-shadow: 0 3px 8px rgba(0,0,0,0.12); }
+button.stat-link:focus-visible { outline: 2px solid var(--late); outline-offset: 2px; }
+
+
+/* ---- register: review step + login success note ---- */
+.review-card[hidden], #register-form[hidden] { display: none; }
+.review-list { margin: 4px 0 6px; border: 1.5px dashed rgba(47, 74, 59, 0.3); border-radius: 8px; background: var(--card); }
+.review-row { display: flex; justify-content: space-between; gap: 16px; padding: 10px 14px; align-items: baseline; }
+.review-row + .review-row { border-top: 1px dashed rgba(47, 74, 59, 0.2); }
+.review-row dt { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-soft); }
+.review-row dd { margin: 0; font-weight: 700; color: var(--ink); text-align: right; overflow-wrap: anywhere; }
+.review-toggle { margin-left: 8px; border: 0; background: none; color: var(--board); font: 700 12px var(--font-body); text-decoration: underline; cursor: pointer; }
+.review-note { font-size: 12px; color: var(--ink-soft); margin-bottom: 4px; }
+.review-edit { margin-top: 6px; height: 40px; border: 0; background: none; color: var(--board); font: 700 14px var(--font-body); cursor: pointer; }
+.review-edit:hover { text-decoration: underline; }
+.review-toggle:focus-visible, .review-edit:focus-visible { outline: 2px solid var(--late); outline-offset: 2px; }
+.auth-success { width: 100%; padding: 10px 12px; border-radius: 6px; margin-bottom: 8px; font-size: 13px; font-weight: 700; color: #1f5a37; background: rgba(60, 133, 88, 0.14); border: 1px solid rgba(60, 133, 88, 0.4); }

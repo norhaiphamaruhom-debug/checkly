@@ -2,6 +2,8 @@ let allUsers = [];
 let allClasses = [];
 let currentUserId = null;
 let editingUserId = null;
+let roleFilter = "all";
+let unassignedOnly = false;
 
 document.addEventListener("DOMContentLoaded", async () => {
     const me = await guardPage("admin");
@@ -18,6 +20,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         "input",
         debounce(() => renderUsers(filteredUsers()), 150)
     );
+
+    document.querySelectorAll("[data-role-filter]").forEach((btn) =>
+        btn.addEventListener("click", () => {
+            roleFilter = btn.dataset.roleFilter;
+            unassignedOnly = false;
+            renderUsers(filteredUsers());
+        })
+    );
+
+    document.getElementById("filter-notice-clear").addEventListener("click", () => {
+        unassignedOnly = false;
+        renderUsers(filteredUsers());
+    });
 
     document.getElementById("create-user-form").addEventListener("submit", handleCreateUser);
     document.getElementById("new-role").addEventListener("change", updateNewUserClassVisibility);
@@ -38,13 +53,22 @@ async function loadOverview() {
         const u = data.userCounts || {};
         const t = data.todayAttendance || {};
         el.innerHTML = `
-            <div class="stat-card"><div class="stat-value">${u.student || 0}</div><div class="stat-label">Students</div></div>
-            <div class="stat-card"><div class="stat-value">${u.teacher || 0}</div><div class="stat-label">Teachers</div></div>
-            <div class="stat-card"><div class="stat-value">${u.admin || 0}</div><div class="stat-label">Admins</div></div>
+            <button type="button" class="stat-card stat-link" data-go-role="student" title="See all students"><div class="stat-value">${u.student || 0}</div><div class="stat-label">Students</div></button>
+            <button type="button" class="stat-card stat-link" data-go-role="teacher" title="See all teachers"><div class="stat-value">${u.teacher || 0}</div><div class="stat-label">Teachers</div></button>
+            <button type="button" class="stat-card stat-link" data-go-role="admin" title="See all admins"><div class="stat-value">${u.admin || 0}</div><div class="stat-label">Admins</div></button>
             <div class="stat-card stat-present"><div class="stat-value">${t.PRESENT || 0}</div><div class="stat-label">Present today</div></div>
             <div class="stat-card stat-late"><div class="stat-value">${t.LATE || 0}</div><div class="stat-label">Late today</div></div>
             <div class="stat-card stat-absent"><div class="stat-value">${t.ABSENT || 0}</div><div class="stat-label">Absent today</div></div>
         `;
+        el.querySelectorAll("[data-go-role]").forEach((card) =>
+            card.addEventListener("click", () => {
+                roleFilter = card.dataset.goRole;
+                unassignedOnly = false;
+                document.getElementById("user-search").value = "";
+                renderUsers(filteredUsers());
+                goToView("accounts");
+            })
+        );
     } catch (err) {
         toast(err.message, "error");
     }
@@ -96,6 +120,60 @@ function drawTrendsChart(days) {
 }
 
 // ---------------------------------------------------------------------------
+// Overview: things that need an admin's attention
+// ---------------------------------------------------------------------------
+
+function goToView(view) {
+    history.replaceState(null, "", `#${view}`);
+    showNavView(view);
+}
+
+function renderAttention() {
+    const panel = document.getElementById("attention-panel");
+    const list = document.getElementById("attention-list");
+    if (!panel || !list) return;
+
+    const items = [];
+    const noClass = allUsers.filter((u) => u.role === "student" && !(u.classes || []).length).length;
+    if (noClass) {
+        items.push({
+            text: `${noClass} student${noClass === 1 ? " has" : "s have"} no class yet`,
+            action: "Assign",
+            run: () => {
+                roleFilter = "student";
+                unassignedOnly = true;
+                renderUsers(filteredUsers());
+                goToView("accounts");
+            },
+        });
+    }
+    const noTeacher = allClasses.filter((c) => !(c.teachers || []).length).length;
+    if (noTeacher) {
+        items.push({
+            text: `${noTeacher} class${noTeacher === 1 ? " has" : "es have"} no teacher`,
+            action: "Fix",
+            run: () => goToView("classes"),
+        });
+    }
+    const noStudents = allClasses.filter((c) => !c.studentCount).length;
+    if (noStudents) {
+        items.push({
+            text: `${noStudents} class${noStudents === 1 ? " has" : "es have"} no students`,
+            action: "View",
+            run: () => goToView("classes"),
+        });
+    }
+
+    panel.hidden = items.length === 0;
+    list.innerHTML = items
+        .map((it, i) => `<li><span>${it.text}</span><button type="button" class="btn btn-outline" data-attention="${i}">${it.action}</button></li>`)
+        .join("");
+    list.querySelectorAll("[data-attention]").forEach((btn) =>
+        btn.addEventListener("click", () => items[Number(btn.dataset.attention)].run())
+    );
+}
+
+// ---------------------------------------------------------------------------
 // Classes
 // ---------------------------------------------------------------------------
 
@@ -105,6 +183,7 @@ async function loadClasses() {
         allClasses = data.classes || [];
         renderClassesList();
         populateClassSelects();
+        renderAttention();
     } catch (err) {
         toast(err.message, "error");
     }
@@ -119,6 +198,9 @@ function classLabel(c) {
 
 function renderClassesList() {
     const el = document.getElementById("classes-list");
+    const openClasses = new Set(
+        [...el.querySelectorAll("details[open][data-class-details]")].map((d) => d.dataset.classDetails)
+    );
     if (allClasses.length === 0) {
         el.innerHTML = '<div class="empty-state">No classes yet. Add one above.</div>';
         return;
@@ -150,17 +232,28 @@ function renderClassesList() {
                 </div>`
                 : "";
 
-            const classStudents = allUsers.filter((u) => u.role === "student" && u.class_id === c.id);
+            const classStudents = c.students || [];
+            const inClass = new Set(classStudents.map((s) => s.id));
+            const addableStudents = allUsers.filter((u) => u.role === "student" && !inClass.has(u.id));
             const studentChips = classStudents.length
                 ? classStudents
-                      .map((s) => `<span class="chip chip-student">${escapeHtml(s.name)}</span>`)
+                      .map((s) => `<span class="chip chip-student">${escapeHtml(s.name)}<button type="button" class="chip-remove" data-remove-student="${s.id}" data-class="${c.id}" title="Remove from class">&times;</button></span>`)
                       .join("")
                 : '<span class="empty-inline">No students yet</span>';
+            const addStudentControl = addableStudents.length
+                ? `<div class="add-teacher-row">
+                       <select class="custom-inp custom-select" data-add-student-select="${c.id}">
+                           ${addableStudents.map((u) => `<option value="${u.id}">${escapeHtml(u.name)}</option>`).join("")}
+                       </select>
+                       <button type="button" class="btn btn-outline" data-add-student-btn="${c.id}">Add student</button>
+                   </div>`
+                : "";
+            const noTeacherBadge = (c.teachers || []).length ? "" : '<span class="badge-warn">No teacher</span>';
 
             return `
             <div class="class-card">
                 <div class="class-card-header">
-                    <div class="class-card-title">${escapeHtml(c.name)}</div>
+                    <div class="class-card-title">${escapeHtml(c.name)} ${noTeacherBadge}</div>
                     <div class="class-card-actions">
                         <button type="button" class="btn btn-outline" data-edit-class="${c.id}">Edit</button>
                         <button type="button" class="btn btn-outline" data-delete-class="${c.id}">Delete</button>
@@ -174,8 +267,11 @@ function renderClassesList() {
                 <div class="class-card-section-label">Teachers</div>
                 <div class="class-card-teachers">${teacherChips}</div>
                 ${addTeacherControl}
-                <div class="class-card-section-label divider">Students (${classStudents.length})</div>
-                <div class="class-card-students">${studentChips}</div>
+                <details class="class-card-details" data-class-details="${c.id}" ${openClasses.has(String(c.id)) ? "open" : ""}>
+                    <summary class="class-card-section-label divider">Students (${classStudents.length})</summary>
+                    <div class="class-card-students">${studentChips}</div>
+                    ${addStudentControl}
+                </details>
             </div>`;
         })
         .join("");
@@ -192,6 +288,16 @@ function renderClassesList() {
             if (select && select.value) addTeacherToClass(classId, select.value);
         });
     });
+    el.querySelectorAll("[data-remove-student]").forEach((btn) => {
+        btn.addEventListener("click", () => changeMembership("remove", btn.dataset.removeStudent, btn.dataset.class));
+    });
+    el.querySelectorAll("[data-add-student-btn]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const classId = btn.dataset.addStudentBtn;
+            const select = el.querySelector(`[data-add-student-select="${classId}"]`);
+            if (select && select.value) changeMembership("add", select.value, classId);
+        });
+    });
     el.querySelectorAll("[data-edit-class]").forEach((btn) => {
         btn.addEventListener("click", () => editClass(btn.dataset.editClass));
     });
@@ -201,11 +307,24 @@ function renderClassesList() {
 }
 
 function populateClassSelects() {
-    const options = ['<option value="">Unassigned</option>']
-        .concat(allClasses.map((c) => `<option value="${c.id}">${escapeHtml(classLabel(c))}</option>`))
-        .join("");
-    const newClassSelect = document.getElementById("new-class");
-    if (newClassSelect) newClassSelect.innerHTML = options;
+    const box = document.getElementById("new-class-checks");
+    if (!box) return;
+    const checked = new Set([...box.querySelectorAll("input:checked")].map((i) => i.value));
+    box.innerHTML = allClasses.length
+        ? allClasses
+              .map((c) => `<label class="class-check"><input type="checkbox" value="${c.id}" ${checked.has(String(c.id)) ? "checked" : ""}> ${escapeHtml(classLabel(c))}</label>`)
+              .join("")
+        : '<span class="empty-inline">No classes yet - add some in the Classes view.</span>';
+}
+
+// Add or remove one class for one person (student or teacher).
+async function changeMembership(action, userId, classId) {
+    try {
+        await apiPost(`/api/users/classes/${action}`, { userId: Number(userId), classId: Number(classId) });
+        await Promise.all([loadUsers(), loadClasses()]);
+    } catch (err) {
+        toast(err.message, "error");
+    }
 }
 
 async function handleCreateClass(e) {
@@ -245,7 +364,7 @@ async function editClass(classId) {
 async function deleteClass(classId) {
     const c = allClasses.find((x) => String(x.id) === String(classId));
     if (!c) return;
-    if (!confirm(`Delete "${c.name}"? Students in this class will become unassigned.`)) return;
+    if (!confirm(`Delete "${c.name}"? Everyone is removed from it and its attendance records are deleted.`)) return;
     try {
         await apiPost("/api/classes/delete", { id: classId });
         toast("Class deleted.");
@@ -289,18 +408,39 @@ async function loadUsers() {
     }
     renderClassesList(); // teacher chips depend on allUsers too
     renderUsers(filteredUsers());
+    renderAttention();
 }
 
 function filteredUsers() {
     const term = (document.getElementById("user-search").value || "").trim().toLowerCase();
-    if (!term) return allUsers;
-    return allUsers.filter(
-        (u) => u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term)
-    );
+    return allUsers.filter((u) => {
+        if (roleFilter !== "all" && u.role !== roleFilter) return false;
+        if (unassignedOnly && (u.role !== "student" || (u.classes || []).length)) return false;
+        if (!term) return true;
+        return u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term);
+    });
+}
+
+function updateRoleFilterTabs() {
+    const counts = { all: allUsers.length, student: 0, teacher: 0, admin: 0 };
+    allUsers.forEach((u) => { if (counts[u.role] !== undefined) counts[u.role] += 1; });
+    document.querySelectorAll("[data-role-filter]").forEach((btn) => {
+        const key = btn.dataset.roleFilter;
+        btn.classList.toggle("active", key === roleFilter);
+        btn.setAttribute("aria-selected", key === roleFilter ? "true" : "false");
+        const c = btn.querySelector(".filter-count");
+        if (c) c.textContent = counts[key];
+    });
+    const notice = document.getElementById("filter-notice");
+    if (notice) {
+        notice.hidden = !unassignedOnly;
+        document.getElementById("filter-notice-text").textContent = "Showing students with no class.";
+    }
 }
 
 function renderUsers(users) {
     const tbody = document.querySelector("#users-table tbody");
+    updateRoleFilterTabs();
     if (users.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No accounts match your search.</td></tr>';
         return;
@@ -328,9 +468,38 @@ function renderUsers(users) {
     tbody.querySelectorAll("[data-reset-password]").forEach((btn) =>
         btn.addEventListener("click", () => resetPassword(btn.dataset.resetPassword))
     );
-    tbody.querySelectorAll("[data-class-select]").forEach((select) =>
-        select.addEventListener("change", () => quickAssignClass(select.dataset.classSelect, select.value))
+    tbody.querySelectorAll("[data-role-select]").forEach((select) =>
+        select.addEventListener("change", () => quickChangeRole(select.dataset.roleSelect, select.value))
     );
+    tbody.querySelectorAll("[data-remove-membership]").forEach((btn) =>
+        btn.addEventListener("click", () => changeMembership("remove", btn.dataset.removeMembership, btn.dataset.class))
+    );
+    tbody.querySelectorAll("[data-add-membership]").forEach((select) =>
+        select.addEventListener("change", () => {
+            if (select.value) changeMembership("add", select.dataset.addMembership, select.value);
+        })
+    );
+}
+
+// Chips for every class a student/teacher is in, each removable, plus a
+// "+ Add class" dropdown listing only the classes they aren't in yet.
+function membershipCell(u, editable) {
+    if (u.role !== "student" && u.role !== "teacher") return "&mdash;";
+    const mine = u.classes || [];
+    const chips = mine.length
+        ? mine.map((c) => `<span class="chip">${escapeHtml(c.name)}${editable
+              ? `<button type="button" class="chip-remove" data-remove-membership="${u.id}" data-class="${c.id}" title="Remove from ${escapeHtml(c.name)}" aria-label="Remove from ${escapeHtml(c.name)}">&times;</button>`
+              : ""}</span>`).join("")
+        : `<span class="empty-inline">${u.role === "teacher" ? "No classes" : "No class yet"}</span>`;
+    const have = new Set(mine.map((c) => c.id));
+    const addable = allClasses.filter((c) => !have.has(c.id));
+    const add = editable && addable.length
+        ? `<select class="custom-inp custom-select add-class-select" data-add-membership="${u.id}" aria-label="Add a class for ${escapeHtml(u.name)}">
+               <option value="">+ Add class</option>
+               ${addable.map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("")}
+           </select>`
+        : "";
+    return `<div class="membership-cell">${chips}${add}</div>`;
 }
 
 function renderUserRow(u) {
@@ -340,19 +509,12 @@ function renderUserRow(u) {
         const roleOptions = ["student", "teacher", "admin"]
             .map((r) => `<option value="${r}" ${r === u.role ? "selected" : ""}>${r}</option>`)
             .join("");
-        const classOptions = ['<option value="">Unassigned</option>']
-            .concat(
-                allClasses.map(
-                    (c) => `<option value="${c.id}" ${c.id === u.class_id ? "selected" : ""}>${escapeHtml(classLabel(c))}</option>`
-                )
-            )
-            .join("");
         return `
             <tr data-row-for="${u.id}">
                 <td data-label="Name"><input class="custom-inp table-edit-inp" type="text" id="edit-name-${u.id}" value="${escapeHtml(u.name)}"></td>
                 <td data-label="Email"><input class="custom-inp table-edit-inp" type="text" id="edit-email-${u.id}" value="${escapeHtml(u.email)}"></td>
                 <td data-label="Role"><select class="custom-inp custom-select table-edit-inp" id="edit-role-${u.id}">${roleOptions}</select></td>
-                <td data-label="Class"><select class="custom-inp custom-select table-edit-inp" id="edit-class-${u.id}">${classOptions}</select></td>
+                <td data-label="Classes">${membershipCell(u, false)}</td>
                 <td data-label="" class="row-actions">
                     <button type="button" class="row-icon-btn row-icon-save" data-save-edit="${u.id}" title="Save changes" aria-label="Save changes">&#10003;</button>
                     <button type="button" class="row-icon-btn row-icon-cancel" data-cancel-edit="${u.id}" title="Cancel" aria-label="Cancel">&#10005;</button>
@@ -360,29 +522,20 @@ function renderUserRow(u) {
             </tr>`;
     }
 
-    let classCell;
-    if (u.role === "student") {
-        const options = ['<option value="">Unassigned</option>']
-            .concat(
-                allClasses.map(
-                    (c) => `<option value="${c.id}" ${c.id === u.class_id ? "selected" : ""}>${escapeHtml(c.name)}</option>`
-                )
-            )
-            .join("");
-        classCell = `<select class="custom-inp custom-select" data-class-select="${u.id}">${options}</select>`;
-    } else if (u.role === "teacher") {
-        classCell = u.classNames && u.classNames.length ? escapeHtml(u.classNames.join(", ")) : '<span class="empty-inline">No classes</span>';
-    } else {
-        classCell = "&mdash;";
-    }
+    const classCell = membershipCell(u, true);
 
     const isSelf = String(u.id) === String(currentUserId);
+    const roleCell = isSelf
+        ? `<span class="role-tag role-${u.role}">${u.role} (you)</span>`
+        : `<select class="custom-inp custom-select role-select role-${u.role}" data-role-select="${u.id}" aria-label="Role for ${escapeHtml(u.name)}">
+               ${["student", "teacher", "admin"].map((r) => `<option value="${r}" ${r === u.role ? "selected" : ""}>${r}</option>`).join("")}
+           </select>`;
     return `
         <tr>
             <td data-label="Name" title="${escapeHtml(u.name)}">${escapeHtml(u.name)}</td>
             <td data-label="Email" title="${escapeHtml(u.email)}">${escapeHtml(u.email)}</td>
-            <td data-label="Role"><span class="role-tag role-${u.role}">${u.role}</span></td>
-            <td data-label="Class">${classCell}</td>
+            <td data-label="Role">${roleCell}</td>
+            <td data-label="Classes">${classCell}</td>
             <td data-label="" class="row-actions">
                 <button type="button" class="row-icon-btn row-icon-edit" data-edit-user="${u.id}" title="Edit account" aria-label="Edit account">&#9998;</button>
                 <button type="button" class="row-icon-btn row-icon-reset" data-reset-password="${u.id}" title="Reset password" aria-label="Reset password">&#8635;</button>
@@ -395,10 +548,8 @@ async function saveUserEdit(userId) {
     const name = document.getElementById(`edit-name-${userId}`).value.trim();
     const email = document.getElementById(`edit-email-${userId}`).value.trim();
     const role = document.getElementById(`edit-role-${userId}`).value;
-    const classSelect = document.getElementById(`edit-class-${userId}`);
-    const classId = role === "student" && classSelect.value ? Number(classSelect.value) : null;
     try {
-        await apiPost("/api/users/update", { id: Number(userId), name, email, role, classId });
+        await apiPost("/api/users/update", { id: Number(userId), name, email, role });
         toast("Account updated.");
         editingUserId = null;
         await Promise.all([loadUsers(), loadClasses()]);
@@ -407,16 +558,21 @@ async function saveUserEdit(userId) {
     }
 }
 
-async function quickAssignClass(userId, classValue) {
+async function quickChangeRole(userId, newRole) {
     const u = allUsers.find((x) => String(x.id) === String(userId));
-    if (!u) return;
-    const classId = classValue ? Number(classValue) : null;
+    if (!u || u.role === newRole) return;
+    if (newRole === "admin" && !confirm(`Make ${u.name} an admin? They will be able to manage every account.`)) {
+        renderUsers(filteredUsers());
+        return;
+    }
+    // Switching student <-> teacher clears their classes (they mean different things).
     try {
-        await apiPost("/api/users/update", { id: Number(userId), name: u.name, email: u.email, role: u.role, classId });
-        toast(`${u.name}'s class updated.`);
+        await apiPost("/api/users/update", { id: Number(userId), name: u.name, email: u.email, role: newRole });
+        toast(`${u.name} is now a ${newRole}.`);
         await Promise.all([loadUsers(), loadClasses()]);
     } catch (err) {
         toast(err.message, "error");
+        renderUsers(filteredUsers());
     }
 }
 
@@ -450,7 +606,8 @@ async function deleteUser(userId) {
 
 function updateNewUserClassVisibility() {
     const role = document.getElementById("new-role").value;
-    document.getElementById("new-user-class-group").style.display = role === "student" ? "block" : "none";
+    document.getElementById("new-user-class-group").style.display =
+        role === "student" || role === "teacher" ? "block" : "none";
 }
 
 async function handleCreateUser(e) {
@@ -460,10 +617,9 @@ async function handleCreateUser(e) {
     const email = document.getElementById("new-email").value.trim();
     const password = document.getElementById("new-password").value;
     const role = document.getElementById("new-role").value;
-    const classSelect = document.getElementById("new-class");
-    const classId = role === "student" && classSelect.value ? Number(classSelect.value) : null;
+    const classIds = [...document.querySelectorAll("#new-class-checks input:checked")].map((i) => Number(i.value));
     try {
-        await apiPost("/api/users/create", { name, email, password, role, classId });
+        await apiPost("/api/users/create", { name, email, password, role, classIds });
         toast(`${name}'s account created.`);
         form.reset();
         updateNewUserClassVisibility();
@@ -524,8 +680,3 @@ async function handleImport() {
     }
 }
 
-function escapeHtml(str) {
-    const div = document.createElement("div");
-    div.textContent = str == null ? "" : String(str);
-    return div.innerHTML;
-}

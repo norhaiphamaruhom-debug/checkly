@@ -22,19 +22,21 @@
                 <div class="list-title">Today</div>
                 <div class="date-pill" id="today-date"></div>
             </div>
+            <div class="class-banner" id="class-banner" hidden></div>
             <div class="today-summary"></div>
 
-            <div class="list-title">Your attendance history</div>
+            <div class="list-title">History</div>
 
-            <div class="view-toggle">
-                <button type="button" id="view-list-btn" class="active">List</button>
-                <button type="button" id="view-calendar-btn">Calendar</button>
+            <div class="history-toolbar">
+                <div class="view-toggle">
+                    <button type="button" id="view-list-btn" class="active">List</button>
+                    <button type="button" id="view-calendar-btn">Calendar</button>
+                </div>
+                <select class="custom-inp custom-select" id="history-class-filter" aria-label="Filter history by class" hidden></select>
+                <button type="button" id="export-csv-btn" class="btn btn-outline">Export CSV</button>
             </div>
 
             <div id="list-view">
-                <div class="action-row">
-                    <button type="button" id="export-csv-btn" class="btn btn-outline">Export as CSV</button>
-                </div>
                 <div class="attendance-history"></div>
             </div>
 

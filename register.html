@@ -45,7 +45,7 @@
         <section class="auth-form-panel">
             <form class="auth-form" id="register-form" novalidate>
                 <h1 class="auth-heading">Create your account</h1>
-                <p class="auth-subheading">Pick your role and you're ready to go.</p>
+                <p class="auth-subheading">Sign up as a student. Teacher and admin access is granted by an administrator.</p>
 
                 <label class="custom-label" for="name">Full name</label>
                 <input class="custom-inp" type="text" id="name" autocomplete="name" required>
@@ -56,27 +56,33 @@
                 <label class="custom-label" for="password">Password</label>
                 <input class="custom-inp" type="password" id="password" autocomplete="new-password" minlength="4" required>
 
-                <span class="custom-label">I am a...</span>
-                <div class="role-picker" role="radiogroup" aria-label="Account role">
-                    <input type="radio" name="role" id="role-student" value="student" checked>
-                    <label class="role-pill" for="role-student">Student</label>
+                <label class="custom-label" for="password2">Confirm password</label>
+                <input class="custom-inp" type="password" id="password2" autocomplete="new-password" required>
 
-                    <input type="radio" name="role" id="role-teacher" value="teacher">
-                    <label class="role-pill" for="role-teacher">Teacher</label>
-
-                    <input type="radio" name="role" id="role-admin" value="admin">
-                    <label class="role-pill" for="role-admin">Admin</label>
-                </div>
-
-                <div id="admin-code-group" class="admin-code-group" hidden>
-                    <label class="custom-label" for="adminCode">Admin code</label>
-                    <input class="custom-inp" type="text" id="adminCode" placeholder="Provided by your institution">
-                </div>
-
-                <button class="auth-submit" type="submit">Create account</button>
+                <button class="auth-submit" type="submit">Review details</button>
 
                 <p class="auth-switch">Already have an account? <a href="index.html">Log in</a></p>
             </form>
+
+            <div class="auth-form review-card" id="review-card" hidden>
+                <h1 class="auth-heading">Check your details</h1>
+                <p class="auth-subheading">Your account isn't created yet. Look this over, then confirm.</p>
+
+                <dl class="review-list">
+                    <div class="review-row"><dt>Name</dt><dd id="review-name"></dd></div>
+                    <div class="review-row"><dt>Email</dt><dd id="review-email"></dd></div>
+                    <div class="review-row">
+                        <dt>Password</dt>
+                        <dd><span id="review-password"></span>
+                            <button type="button" class="review-toggle" id="review-toggle" aria-pressed="false">Show</button></dd>
+                    </div>
+                    <div class="review-row"><dt>Account type</dt><dd>Student</dd></div>
+                </dl>
+                <p class="review-note">An admin will add you to your classes and can change your account type later.</p>
+
+                <button class="auth-submit" type="button" id="confirm-btn">Create account</button>
+                <button class="review-edit" type="button" id="edit-btn">&#8592; Go back and edit</button>
+            </div>
         </section>
     </div>
 

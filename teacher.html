@@ -20,7 +20,8 @@
         <div class="list-container">
             <div class="dashboard-header">
                 <div class="list-title">Mark attendance</div>
-                <select class="custom-inp custom-select" id="class-select" hidden></select>
+                <select class="custom-inp custom-select" id="class-select" hidden aria-label="Class"></select>
+                <div class="class-label" id="class-label" hidden></div>
                 <div class="date-nav">
                     <button type="button" id="date-prev" aria-label="Previous day">&#8592;</button>
                     <input type="date" id="date-picker" aria-label="Attendance date">
@@ -28,11 +29,20 @@
                     <button type="button" id="date-today" class="btn btn-outline" hidden>Today</button>
                 </div>
             </div>
+            <div class="class-tabs" id="class-tabs" role="tablist" aria-label="Your classes" hidden></div>
             <div id="past-date-banner" class="viewing-past-banner" hidden></div>
             <div class="today-summary"></div>
+            <div class="progress-wrap" id="progress-wrap" hidden>
+                <div class="progress-text" id="progress-text"></div>
+                <div class="progress-bar" role="progressbar" aria-labelledby="progress-text"><div id="progress-fill"></div></div>
+            </div>
             <div class="action-row">
                 <button type="button" id="mark-all-btn" class="btn btn-solid">Mark all present</button>
                 <button type="button" id="print-btn" class="btn btn-outline">Print roster</button>
+                <div class="view-toggle layout-toggle" role="group" aria-label="Roster layout">
+                    <button type="button" id="layout-rows-btn" class="active">Rows</button>
+                    <button type="button" id="layout-cards-btn">Cards</button>
+                </div>
             </div>
             <div class="list-controls">
                 <div class="control-field">

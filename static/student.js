@@ -1,4 +1,8 @@
-let allRecords = [];
+let allRecords = [];      // every record, all classes
+let shownRecords = [];    // records after the class filter
+let myClasses = [];
+let classFilter = "all";  // "all" or a class id (as string)
+let todayDate = null;
 let calendarCursor = null; // {year, month} currently shown in the calendar view
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -12,6 +16,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("cal-prev").addEventListener("click", () => shiftCalendarMonth(-1));
     document.getElementById("cal-next").addEventListener("click", () => shiftCalendarMonth(1));
     document.getElementById("export-csv-btn").addEventListener("click", exportCsv);
+    document.getElementById("history-class-filter").addEventListener("change", (e) => {
+        classFilter = e.target.value;
+        renderHistory();
+    });
 });
 
 async function loadHistory() {
@@ -30,39 +38,123 @@ async function loadHistory() {
     }
 
     allRecords = data.records;
+    myClasses = data.classes || [];
+    todayDate = data.date;
 
-    const percentCard =
-        data.percentPresent === null
-            ? ""
-            : `<div class="stat-card"><div class="stat-value">${data.percentPresent}%</div><div class="stat-label">Present this term</div></div>`;
-
-    summaryEl.innerHTML = `
-        <div class="stat-card stat-${data.todayStatus.toLowerCase()}">
-            <div class="stat-value status-symbol status-${data.todayStatus}">${statusSymbol(data.todayStatus)}</div>
-            <div class="stat-label">You're ${data.todayStatus.toLowerCase()} today</div>
-        </div>
-        ${percentCard}
-    `;
-
-    setDatePill(data.date);
-
-    if (allRecords.length === 0) {
-        historyEl.innerHTML = '<div class="empty-state">No attendance recorded yet.</div>';
-    } else {
-        historyEl.innerHTML = allRecords
-            .map(
-                (r) => `
-            <div class="history-row">
-                <div class="history-date">${r.att_date}</div>
-                <div class="history-status status-${r.status}">${r.status}</div>
-            </div>`
-            )
-            .join("");
-    }
+    renderClassBanner(myClasses, data.todayByClass || []);
+    setupClassFilter(data.classFilterOptions || []);
+    renderHistory(data.todayStatus);
 
     const today = new Date(`${data.date}T00:00:00`);
     calendarCursor = { year: today.getFullYear(), month: today.getMonth() };
     renderCalendar();
+}
+
+// Only show the class filter when there's actually more than one class to choose from.
+function setupClassFilter(options) {
+    const sel = document.getElementById("history-class-filter");
+    if (options.length <= 1) {
+        sel.hidden = true;
+        classFilter = "all";
+        return;
+    }
+    sel.hidden = false;
+    sel.innerHTML =
+        '<option value="all">All classes</option>' +
+        options.map((o) => `<option value="${o.id}">${escapeHtml(o.name)}</option>`).join("");
+    sel.value = classFilter;
+}
+
+let lastTodayStatus = "UNMARKED";
+
+// Stats, list and calendar all follow the class filter, so "Present overall"
+// means "overall for the class you're looking at".
+function renderHistory(todayStatus) {
+    if (todayStatus) lastTodayStatus = todayStatus;
+    shownRecords = classFilter === "all"
+        ? allRecords
+        : allRecords.filter((r) => String(r.classId) === String(classFilter));
+
+    const counts = { PRESENT: 0, LATE: 0, ABSENT: 0 };
+    shownRecords.forEach((r) => { if (counts[r.status] !== undefined) counts[r.status] += 1; });
+    const percent = shownRecords.length ? Math.round((counts.PRESENT / shownRecords.length) * 100) : null;
+
+    const summaryEl = document.querySelector(".today-summary");
+    const historyEl = document.querySelector(".attendance-history");
+    const status = lastTodayStatus;
+
+    const percentCard = percent === null
+        ? ""
+        : `<div class="stat-card"><div class="stat-value">${percent}%</div><div class="stat-label">Present overall</div></div>`;
+    const countCards = shownRecords.length
+        ? `<div class="stat-card stat-present"><div class="stat-value">${counts.PRESENT}</div><div class="stat-label">Present</div></div>
+           <div class="stat-card stat-late"><div class="stat-value">${counts.LATE}</div><div class="stat-label">Late</div></div>
+           <div class="stat-card stat-absent"><div class="stat-value">${counts.ABSENT}</div><div class="stat-label">Absent</div></div>`
+        : "";
+
+    summaryEl.innerHTML = `
+        <div class="stat-card stat-${status.toLowerCase()}">
+            <div class="stat-value status-symbol status-${status}">${statusSymbol(status)}</div>
+            <div class="stat-label">You're ${status.toLowerCase()} today</div>
+        </div>
+        ${percentCard}
+        ${countCards}
+    `;
+    setDatePill(todayDate);
+
+    historyEl.innerHTML = shownRecords.length === 0
+        ? '<div class="empty-state">No attendance recorded yet.</div>'
+        : renderGroupedHistory(shownRecords);
+    if (calendarCursor) renderCalendar();
+}
+
+function renderClassBanner(classes, todayByClass) {
+    const el = document.getElementById("class-banner");
+    if (!el) return;
+    el.hidden = false;
+    if (!classes.length) {
+        el.innerHTML = '<div class="class-banner-name">No classes yet</div><div class="class-banner-meta">An admin will add you to your classes.</div>';
+        return;
+    }
+    const todayMap = {};
+    todayByClass.forEach((t) => { todayMap[t.classId] = t.status; });
+    el.innerHTML = classes.map((c) => {
+        const meta = [c.yearLevel, c.course].filter(Boolean).join(" \u00B7 ");
+        const teachers = c.teachers && c.teachers.length
+            ? `Teacher${c.teachers.length === 1 ? "" : "s"}: ${c.teachers.join(", ")}`
+            : "No teacher assigned yet";
+        const st = todayMap[c.id] || "UNMARKED";
+        return `
+        <div class="class-banner-item">
+            <div>
+                <div class="class-banner-name">${escapeHtml(c.name)}</div>
+                <div class="class-banner-meta">${[meta, teachers].filter(Boolean).map(escapeHtml).join(" \u00B7 ")}</div>
+            </div>
+            <div class="history-status status-${st}">${st}</div>
+        </div>`;
+    }).join("");
+}
+
+function renderGroupedHistory(records) {
+    // records arrive newest first; group them under month headings.
+    let currentKey = null;
+    const out = [];
+    for (const r of records) {
+        const d = new Date(`${r.att_date}T00:00:00`);
+        const key = `${d.getFullYear()}-${d.getMonth()}`;
+        if (key !== currentKey) {
+            currentKey = key;
+            out.push(`<div class="history-month">${d.toLocaleDateString(undefined, { month: "long", year: "numeric" })}</div>`);
+        }
+        const label = d.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
+        const showClass = new Set(allRecords.map((x) => x.classId)).size > 1;
+        out.push(`
+            <div class="history-row">
+                <div class="history-date" title="${r.att_date}">${label}${showClass ? ` <span class="history-class">${escapeHtml(r.className)}</span>` : ""}</div>
+                <div class="history-status status-${r.status}">${r.status}</div>
+            </div>`);
+    }
+    return out.join("");
 }
 
 function statusSymbol(status) {
@@ -108,8 +200,11 @@ function renderCalendar() {
         .map((d) => `<div class="calendar-weekday">${d}</div>`)
         .join("");
 
+    const rank = { ABSENT: 3, LATE: 2, PRESENT: 1 };
     const byDate = {};
-    for (const r of allRecords) byDate[r.att_date] = r.status;
+    for (const r of shownRecords) {
+        if (!byDate[r.att_date] || rank[r.status] > rank[byDate[r.att_date]]) byDate[r.att_date] = r.status;
+    }
 
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -129,10 +224,10 @@ function renderCalendar() {
 }
 
 function exportCsv() {
-    if (allRecords.length === 0) {
+    if (shownRecords.length === 0) {
         toast("No attendance history to export yet.", "error");
         return;
     }
-    const rows = [["Date", "Status"], ...allRecords.map((r) => [r.att_date, r.status])];
+    const rows = [["Date", "Class", "Status"], ...shownRecords.map((r) => [r.att_date, r.className, r.status])];
     downloadCsv("attendance-history.csv", rows);
 }

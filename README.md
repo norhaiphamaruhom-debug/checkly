@@ -24,7 +24,8 @@ From there:
 
 1. Log in as admin and use **Add account** (one at a time, or **Bulk import**
    from a CSV) to create teacher and student accounts - or let people
-   self-register on the "Create Account" page.
+   self-register as students on the "Create Account" page and promote them
+   as needed.
 2. Log in as a **teacher** to see the student roster and mark each student
    Present / Late / Absent - for today or any past day.
 3. Log in as a **student** to see your own attendance history, percentage,
@@ -72,13 +73,53 @@ From there:
 - **Print-friendly roster** - the teacher page has a "Print roster" button
   that produces a clean, card-free printout for a paper backup.
 
+## Navigation
+
+- **Admin:** an always-visible tab bar (Overview / Classes / People / Add) - a bottom bar on
+  phones, a row of pills on desktop. The Students/Teachers/Admins numbers on the Overview are
+  buttons that jump to that filtered list.
+- **Teacher:** your classes are tabs above the roster (one tap to switch; with more than 6
+  classes it falls back to a dropdown). The last class you used is remembered.
+- **Everyone:** a labeled **Log out** button in the top bar; the burger menu still has
+  Change password and the extra actions.
+
+## Classes: many-to-many
+
+- A **student** can be in several classes, and a **teacher** can teach several classes.
+- A class can have several **teachers** and several **students**.
+- Attendance is recorded **per class per day**, so a student can be Present in Math
+  and Absent in Science on the same day. Teachers only see/mark the classes they teach
+  (use the class dropdown on the teacher page).
+- Admin > **People**: every student/teacher row has class chips (x to remove) and a
+  "+ Add class" dropdown. Admin > **Classes**: each card lists teachers and students
+  with the same add/remove controls.
+- Students see all their classes (with teachers and today's status per class), and can
+  filter their history, stats, calendar and CSV export by class.
+- CSV import: put several classes in the `class` column separated by `;`
+  (e.g. `Math 10;Science 10`). Works for students and teachers.
+- Upgrading an existing database is automatic on first start: each student's old single
+  class becomes a membership, and old attendance is attached to that class (records from
+  before classes existed show as "No class").
+
+## Changing your password
+
+Every role has **Change password** in the menu (burger icon). You enter your
+current password and the new one twice; other devices signed in to the same
+account are logged out, while the one you're using stays signed in. While the
+seeded `admin123` password is still in use, a banner reminds you to change it
+until you do.
+
 ## Self-registration
 
-Anyone can create a Student or Teacher account from the "Create Account" page.
-Registering as an **Admin** requires an admin code (set in `server.py` as
-`ADMIN_SIGNUP_CODE`, default: `CHECKLY-ADMIN-2026`) — change this before
-deploying anywhere real. Admins can also just create accounts directly for
-teachers and students from the Admin dashboard, no code needed.
+Anyone can create an account from the "Create Account" page, but self-signup
+always creates a **Student**. Signing up is two steps: fill in the form (name, email,
+password typed twice), then a **Check your details** screen shows everything back
+(password masked, with a Show button). Nothing is saved until they press **Create account**,
+and **Go back and edit** keeps what they typed. If the email is already taken they're sent
+back to the form with the error. After creating the account they land on the login page
+with their email filled in. Only an admin can promote an account to Teacher
+or Admin (Admin dashboard > Accounts > Edit > Role). There is no admin signup
+code any more.
 
 ## File map
 
@@ -98,7 +139,7 @@ static/admin.js                Admin dashboard logic (edit/reset/import/trends)
 static/teacher.js             Teacher dashboard logic (dates/mark-all/undo/streaks)
 static/student.js             Student dashboard logic (history/percentage/calendar/export)
 static/manifest.json          Web app manifest (installable to home screen)
-static/sw.js                  Minimal service worker (enables install; no offline caching)
+static/sw.js                  Minimal service worker (enables install; no offline caching; scope set to / by server.py)
 static/icons/                 App icons used by the manifest and browser tab
 ```
 
@@ -113,4 +154,4 @@ static/icons/                 App icons used by the manifest and browser tab
   for that day, which is what both "undo" and correcting a past day rely on.
 - The original custom fonts and icon images referenced in the very first
   version of this project aren't included; the app now ships its own
-  Google Fonts (Caveat + Nunito) and its own generated icon set instead.
+  the Nunito font from Google Fonts (Arial/Segoe UI as fallback) and its own generated icon set instead.
