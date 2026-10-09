@@ -46,9 +46,10 @@
         <div class="admin-panel classes-section">
             <div class="list-title">Classes</div>
             <form id="create-class-form" class="create-class-form">
-                <input class="custom-inp" type="text" id="new-class-name" placeholder="Class name (e.g. Grade 10 - A)" required>
-                <input class="custom-inp" type="text" id="new-class-year" placeholder="Year level (optional)">
-                <input class="custom-inp" type="text" id="new-class-course" placeholder="Course/subject (optional)">
+                <input class="custom-inp" type="text" id="new-class-name" placeholder="Class name (e.g. BSIT 1A)" required>
+                <select class="custom-inp custom-select" id="new-class-year" aria-label="Year level"></select>
+                <select class="custom-inp custom-select" id="new-class-course" aria-label="Course"></select>
+                <input class="custom-inp" type="text" id="new-class-course-other" placeholder="Type the course name" aria-label="Other course name" hidden>
                 <button class="btn btn-solid" type="submit">Add class</button>
             </form>
             <div id="classes-list" class="classes-list"></div>
@@ -120,6 +121,25 @@
             </div>
         </div>
     </div>
+
+
+    <dialog class="password-dialog" id="class-dialog">
+        <form id="class-edit-form" method="dialog">
+            <h2 class="dialog-title">Edit class</h2>
+            <label class="custom-label" for="edit-class-name">Class name</label>
+            <input class="custom-inp" type="text" id="edit-class-name" required>
+            <label class="custom-label" for="edit-class-year">Year level</label>
+            <select class="custom-inp custom-select" id="edit-class-year"></select>
+            <label class="custom-label" for="edit-class-course">Course</label>
+            <select class="custom-inp custom-select" id="edit-class-course"></select>
+            <input class="custom-inp" type="text" id="edit-class-course-other" placeholder="Type the course name" aria-label="Other course name" hidden style="margin-top:8px;">
+            <div class="form-error" id="class-edit-error" hidden></div>
+            <div class="dialog-actions" style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
+                <button type="button" class="btn btn-outline" id="class-edit-cancel">Cancel</button>
+                <button type="submit" class="btn btn-solid">Save changes</button>
+            </div>
+        </form>
+    </dialog>
 
     <script src="static/app.js"></script>
     <script src="static/admin.js"></script>

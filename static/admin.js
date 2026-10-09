@@ -1,3 +1,43 @@
+const YEAR_LEVELS = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
+// Edit this list to change the courses offered in the dropdown.
+const COURSES = [
+    "BS Information Technology",
+    "BS Computer Science",
+    "BS Education",
+    "BS Business Administration",
+    "BS Accountancy",
+    "BS Nursing",
+    "BS Hospitality Management",
+    "BS Criminology",
+    "BS Psychology",
+    "BS Engineering",
+];
+const OTHER_COURSE = "__other__";
+
+// Fill a year + course dropdown pair (and its "other" text box).
+// `current` values that aren't in the lists (older data) are kept, not lost.
+function fillClassSelects(yearSel, courseSel, otherInput, year = "", course = "") {
+    const years = year && !YEAR_LEVELS.includes(year) ? [...YEAR_LEVELS, year] : YEAR_LEVELS;
+    yearSel.innerHTML = '<option value="">Year level (optional)</option>' +
+        years.map((y) => `<option value="${escapeHtml(y)}">${escapeHtml(y)}</option>`).join("");
+    yearSel.value = year;
+    courseSel.innerHTML = '<option value="">Course (optional)</option>' +
+        COURSES.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("") +
+        `<option value="${OTHER_COURSE}">Other (type it in)</option>`;
+    const isOther = course && !COURSES.includes(course);
+    courseSel.value = isOther ? OTHER_COURSE : course;
+    otherInput.value = isOther ? course : "";
+    otherInput.hidden = !isOther;
+    courseSel.onchange = () => {
+        otherInput.hidden = courseSel.value !== OTHER_COURSE;
+        if (!otherInput.hidden) otherInput.focus();
+    };
+}
+
+function readCourse(courseSel, otherInput) {
+    return courseSel.value === OTHER_COURSE ? otherInput.value.trim() : courseSel.value;
+}
+
 let allUsers = [];
 let allClasses = [];
 let currentUserId = null;
@@ -38,6 +78,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("new-role").addEventListener("change", updateNewUserClassVisibility);
     updateNewUserClassVisibility();
 
+    fillClassSelects(
+        document.getElementById("new-class-year"),
+        document.getElementById("new-class-course"),
+        document.getElementById("new-class-course-other")
+    );
     document.getElementById("create-class-form").addEventListener("submit", handleCreateClass);
     document.getElementById("import-btn").addEventListener("click", handleImport);
 });
@@ -330,12 +375,13 @@ async function changeMembership(action, userId, classId) {
 async function handleCreateClass(e) {
     e.preventDefault();
     const name = document.getElementById("new-class-name").value.trim();
-    const yearLevel = document.getElementById("new-class-year").value.trim();
-    const course = document.getElementById("new-class-course").value.trim();
+    const yearLevel = document.getElementById("new-class-year").value;
+    const course = readCourse(document.getElementById("new-class-course"), document.getElementById("new-class-course-other"));
     if (!name) return;
     try {
         await apiPost("/api/classes/create", { name, yearLevel, course });
         document.getElementById("create-class-form").reset();
+        document.getElementById("new-class-course-other").hidden = true;
         toast(`Class "${name}" created.`);
         await loadClasses();
     } catch (err) {
@@ -343,22 +389,35 @@ async function handleCreateClass(e) {
     }
 }
 
-async function editClass(classId) {
+function editClass(classId) {
     const c = allClasses.find((x) => String(x.id) === String(classId));
     if (!c) return;
-    const name = prompt("Class name", c.name);
-    if (name === null) return;
-    const yearLevel = prompt("Year level (optional)", c.year_level || "");
-    if (yearLevel === null) return;
-    const course = prompt("Course/subject (optional)", c.course || "");
-    if (course === null) return;
-    try {
-        await apiPost("/api/classes/update", { id: classId, name: name.trim(), yearLevel: yearLevel.trim(), course: course.trim() });
-        toast("Class updated.");
-        await loadClasses();
-    } catch (err) {
-        toast(err.message, "error");
-    }
+    const dlg = document.getElementById("class-dialog");
+    const form = document.getElementById("class-edit-form");
+    const err = document.getElementById("class-edit-error");
+    const yearSel = document.getElementById("edit-class-year");
+    const courseSel = document.getElementById("edit-class-course");
+    const other = document.getElementById("edit-class-course-other");
+    document.getElementById("edit-class-name").value = c.name;
+    fillClassSelects(yearSel, courseSel, other, c.year_level || "", c.course || "");
+    err.hidden = true;
+
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        const name = document.getElementById("edit-class-name").value.trim();
+        if (!name) { err.textContent = "Please enter a class name."; err.hidden = false; return; }
+        try {
+            await apiPost("/api/classes/update", { id: classId, name, yearLevel: yearSel.value, course: readCourse(courseSel, other) });
+            dlg.close();
+            toast("Class updated.");
+            await loadClasses();
+        } catch (e2) {
+            err.textContent = e2.message;
+            err.hidden = false;
+        }
+    };
+    document.getElementById("class-edit-cancel").onclick = () => dlg.close();
+    dlg.showModal();
 }
 
 async function deleteClass(classId) {

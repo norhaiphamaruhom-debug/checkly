@@ -33,6 +33,7 @@ from urllib.parse import urlparse, parse_qs
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "checkly.db")
+YEAR_LEVELS = ("1st Year", "2nd Year", "3rd Year", "4th Year")
 PASSWORD_SALT = "checkly_static_salt_v1"  # simple stdlib-only hashing, fine for a local demo app
 REMEMBER_ME_SECONDS = 60 * 60 * 24 * 30  # 30 days
 ABSENT_STREAK_LOOKBACK = 10  # how many recent rows to scan when computing a streak
@@ -914,6 +915,9 @@ class CheeklyHandler(BaseHTTPRequestHandler):
             if not name:
                 self.send_json({"error": "Class name is required."}, 400)
                 return
+            if year_level and year_level not in YEAR_LEVELS:
+                self.send_json({"error": "Year level must be 1st to 4th Year."}, 400)
+                return
             conn = get_db()
             cur = conn.execute(
                 "INSERT INTO classes (name, year_level, course) VALUES (?,?,?)",
@@ -937,6 +941,12 @@ class CheeklyHandler(BaseHTTPRequestHandler):
                 self.send_json({"error": "Class name is required."}, 400)
                 return
             conn = get_db()
+            prev = conn.execute("SELECT year_level FROM classes WHERE id = ?", (class_id,)).fetchone()
+            # Older classes may hold a value from before (e.g. "Grade 10"); keep it if unchanged.
+            if year_level and year_level not in YEAR_LEVELS and not (prev and prev["year_level"] == year_level):
+                conn.close()
+                self.send_json({"error": "Year level must be 1st to 4th Year."}, 400)
+                return
             conn.execute(
                 "UPDATE classes SET name = ?, year_level = ?, course = ? WHERE id = ?",
                 (name, year_level, course, class_id),

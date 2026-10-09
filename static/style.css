@@ -2433,3 +2433,4 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--late); outline-
 
 .users-table td .role-select, .role-select { min-width: 140px; width: auto; padding: 8px 30px 8px 12px; text-overflow: clip; }
 @media (min-width: 881px) { .users-table td:nth-child(3) { min-width: 165px; } }
+.custom-inp[hidden], .custom-select[hidden] { display: none !important; }
