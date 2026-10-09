@@ -85,7 +85,8 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             year_level TEXT,
-            course TEXT
+            course TEXT,
+            set_name TEXT
         )"""
     )
     conn.execute(
@@ -113,6 +114,11 @@ def init_db():
     # can show the newest sign-ups first. Older accounts keep a NULL value.
     if "created_at" not in [r["name"] for r in conn.execute("PRAGMA table_info(users)")]:
         conn.execute("ALTER TABLE users ADD COLUMN created_at TEXT")
+        conn.commit()
+
+    # Migration 0b: classes can now belong to a set (Set A, Set B, ...).
+    if "set_name" not in [r["name"] for r in conn.execute("PRAGMA table_info(classes)")]:
+        conn.execute("ALTER TABLE classes ADD COLUMN set_name TEXT")
         conn.commit()
 
     # Migration 1: older versions stored ONE class on the user row. Copy it
@@ -227,7 +233,7 @@ def get_students_with_status(conn, att_date, class_id):
 def get_teacher_classes(conn, teacher_id):
     """Classes a teacher is assigned to teach, alphabetical."""
     rows = conn.execute(
-        """SELECT c.id, c.name, c.year_level, c.course
+        """SELECT c.id, c.name, c.year_level, c.course, c.set_name
            FROM classes c
            JOIN class_teachers ct ON ct.class_id = c.id
            WHERE ct.teacher_id = ?
@@ -240,7 +246,7 @@ def get_teacher_classes(conn, teacher_id):
 def get_student_classes(conn, student_id):
     """Every class a student is in, with that class's teachers."""
     rows = conn.execute(
-        """SELECT c.id, c.name, c.year_level, c.course
+        """SELECT c.id, c.name, c.year_level, c.course, c.set_name
            FROM classes c JOIN class_students cs ON cs.class_id = c.id
            WHERE cs.student_id = ? ORDER BY c.name""",
         (student_id,),
@@ -452,7 +458,7 @@ class CheeklyHandler(BaseHTTPRequestHandler):
                 classes_out = get_teacher_classes(conn, user["id"])
             else:
                 classes_out = [dict(r) for r in conn.execute(
-                    "SELECT id, name, year_level, course FROM classes ORDER BY name"
+                    "SELECT id, name, year_level, course, set_name FROM classes ORDER BY name"
                 ).fetchall()]
             class_ids = [c["id"] for c in classes_out]
             if not class_ids:
@@ -546,7 +552,7 @@ class CheeklyHandler(BaseHTTPRequestHandler):
                 "counts": counts,
                 "classes": [
                     {"id": c["id"], "name": c["name"], "yearLevel": c["year_level"],
-                     "course": c["course"], "teachers": c["teachers"]}
+                     "course": c["course"], "setName": c["set_name"], "teachers": c["teachers"]}
                     for c in my_classes
                 ],
                 "classFilterOptions": [{"id": cid, "name": nm} for cid, nm in sorted(names.items(), key=lambda kv: kv[1])],
@@ -593,7 +599,7 @@ class CheeklyHandler(BaseHTTPRequestHandler):
                 self.send_json({"classes": classes})
                 return
             rows = conn.execute(
-                "SELECT id, name, year_level, course FROM classes ORDER BY name"
+                "SELECT id, name, year_level, course, set_name FROM classes ORDER BY name"
             ).fetchall()
             classes = []
             for r in rows:
@@ -912,6 +918,7 @@ class CheeklyHandler(BaseHTTPRequestHandler):
             name = (body.get("name") or "").strip()
             year_level = (body.get("yearLevel") or "").strip()
             course = (body.get("course") or "").strip()
+            set_name = (body.get("setName") or "").strip()[:40]
             if not name:
                 self.send_json({"error": "Class name is required."}, 400)
                 return
@@ -920,8 +927,8 @@ class CheeklyHandler(BaseHTTPRequestHandler):
                 return
             conn = get_db()
             cur = conn.execute(
-                "INSERT INTO classes (name, year_level, course) VALUES (?,?,?)",
-                (name, year_level, course),
+                "INSERT INTO classes (name, year_level, course, set_name) VALUES (?,?,?,?)",
+                (name, year_level, course, set_name),
             )
             conn.commit()
             new_id = cur.lastrowid
@@ -937,6 +944,7 @@ class CheeklyHandler(BaseHTTPRequestHandler):
             name = (body.get("name") or "").strip()
             year_level = (body.get("yearLevel") or "").strip()
             course = (body.get("course") or "").strip()
+            set_name = (body.get("setName") or "").strip()[:40]
             if not name:
                 self.send_json({"error": "Class name is required."}, 400)
                 return
@@ -948,8 +956,8 @@ class CheeklyHandler(BaseHTTPRequestHandler):
                 self.send_json({"error": "Year level must be 1st to 4th Year."}, 400)
                 return
             conn.execute(
-                "UPDATE classes SET name = ?, year_level = ?, course = ? WHERE id = ?",
-                (name, year_level, course, class_id),
+                "UPDATE classes SET name = ?, year_level = ?, course = ?, set_name = ? WHERE id = ?",
+                (name, year_level, course, set_name, class_id),
             )
             conn.commit()
             conn.close()

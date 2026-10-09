@@ -119,7 +119,7 @@ function renderClassBanner(classes, todayByClass) {
     const todayMap = {};
     todayByClass.forEach((t) => { todayMap[t.classId] = t.status; });
     el.innerHTML = classes.map((c) => {
-        const meta = [c.yearLevel, c.course].filter(Boolean).join(" \u00B7 ");
+        const meta = [c.yearLevel, c.setName, c.course].filter(Boolean).join(" \u00B7 ");
         const teachers = c.teachers && c.teachers.length
             ? `Teacher${c.teachers.length === 1 ? "" : "s"}: ${c.teachers.join(", ")}`
             : "No teacher assigned yet";

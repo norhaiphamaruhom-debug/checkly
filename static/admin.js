@@ -12,7 +12,16 @@ const COURSES = [
     "BS Psychology",
     "BS Engineering",
 ];
+// Edit this list to change the sets offered in the dropdown.
+const SETS = ["Set A", "Set B", "Set C", "Set D", "Set E", "Set F"];
 const OTHER_COURSE = "__other__";
+
+function fillSetSelect(sel, current = "") {
+    const sets = current && !SETS.includes(current) ? [...SETS, current] : SETS;
+    sel.innerHTML = '<option value="">Set (optional)</option>' +
+        sets.map((x) => `<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join("");
+    sel.value = current;
+}
 
 // Fill a year + course dropdown pair (and its "other" text box).
 // `current` values that aren't in the lists (older data) are kept, not lost.
@@ -83,6 +92,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("new-class-course"),
         document.getElementById("new-class-course-other")
     );
+    fillSetSelect(document.getElementById("new-class-set"));
     document.getElementById("create-class-form").addEventListener("submit", handleCreateClass);
     document.getElementById("import-btn").addEventListener("click", handleImport);
 });
@@ -236,7 +246,7 @@ async function loadClasses() {
 
 function classLabel(c) {
     const bits = [c.name];
-    const meta = [c.year_level, c.course].filter(Boolean).join(" \u00B7 ");
+    const meta = [c.year_level, c.set_name, c.course].filter(Boolean).join(" \u00B7 ");
     if (meta) bits.push(`(${meta})`);
     return bits.join(" ");
 }
@@ -306,6 +316,7 @@ function renderClassesList() {
                 </div>
                 <div class="class-card-meta">
                     ${c.year_level ? `<span>${escapeHtml(c.year_level)}</span>` : ""}
+                    ${c.set_name ? `<span>${escapeHtml(c.set_name)}</span>` : ""}
                     ${c.course ? `<span>${escapeHtml(c.course)}</span>` : ""}
                     <span>${c.studentCount} student${c.studentCount === 1 ? "" : "s"}</span>
                 </div>
@@ -379,7 +390,7 @@ async function handleCreateClass(e) {
     const course = readCourse(document.getElementById("new-class-course"), document.getElementById("new-class-course-other"));
     if (!name) return;
     try {
-        await apiPost("/api/classes/create", { name, yearLevel, course });
+        await apiPost("/api/classes/create", { name, yearLevel, course, setName: document.getElementById("new-class-set").value });
         document.getElementById("create-class-form").reset();
         document.getElementById("new-class-course-other").hidden = true;
         toast(`Class "${name}" created.`);
@@ -400,6 +411,8 @@ function editClass(classId) {
     const other = document.getElementById("edit-class-course-other");
     document.getElementById("edit-class-name").value = c.name;
     fillClassSelects(yearSel, courseSel, other, c.year_level || "", c.course || "");
+    const setSel = document.getElementById("edit-class-set");
+    fillSetSelect(setSel, c.set_name || "");
     err.hidden = true;
 
     form.onsubmit = async (e) => {
@@ -407,7 +420,7 @@ function editClass(classId) {
         const name = document.getElementById("edit-class-name").value.trim();
         if (!name) { err.textContent = "Please enter a class name."; err.hidden = false; return; }
         try {
-            await apiPost("/api/classes/update", { id: classId, name, yearLevel: yearSel.value, course: readCourse(courseSel, other) });
+            await apiPost("/api/classes/update", { id: classId, name, yearLevel: yearSel.value, course: readCourse(courseSel, other), setName: setSel.value });
             dlg.close();
             toast("Class updated.");
             await loadClasses();
