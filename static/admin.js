@@ -516,8 +516,8 @@ function renderUserRow(u) {
                 <td data-label="Role"><select class="custom-inp custom-select table-edit-inp" id="edit-role-${u.id}">${roleOptions}</select></td>
                 <td data-label="Classes">${membershipCell(u, false)}</td>
                 <td data-label="" class="row-actions">
-                    <button type="button" class="row-icon-btn row-icon-save" data-save-edit="${u.id}" title="Save changes" aria-label="Save changes">&#10003;</button>
-                    <button type="button" class="row-icon-btn row-icon-cancel" data-cancel-edit="${u.id}" title="Cancel" aria-label="Cancel">&#10005;</button>
+                    <button type="button" class="row-icon-btn row-icon-save" data-save-edit="${u.id}" title="Save changes" aria-label="Save changes">Save</button>
+                    <button type="button" class="row-icon-btn row-icon-cancel" data-cancel-edit="${u.id}" title="Cancel" aria-label="Cancel">Cancel</button>
                 </td>
             </tr>`;
     }
@@ -538,9 +538,9 @@ function renderUserRow(u) {
             <td data-label="Role">${roleCell}</td>
             <td data-label="Classes">${classCell}</td>
             <td data-label="" class="row-actions">
-                <button type="button" class="row-icon-btn row-icon-edit" data-edit-user="${u.id}" title="Edit account" aria-label="Edit account">&#9998;</button>
-                <button type="button" class="row-icon-btn row-icon-reset" data-reset-password="${u.id}" title="Reset password" aria-label="Reset password">&#8635;</button>
-                ${isSelf ? "" : `<button type="button" class="row-icon-btn row-icon-delete" data-delete-user="${u.id}" title="Delete account" aria-label="Delete account">&#10005;</button>`}
+                <button type="button" class="row-icon-btn row-icon-edit" data-edit-user="${u.id}" title="Edit name, email or role" aria-label="Edit account">Edit</button>
+                <button type="button" class="row-icon-btn row-icon-reset" data-reset-password="${u.id}" title="Set a new password for this person" aria-label="Reset password">Reset password</button>
+                ${isSelf ? "" : `<button type="button" class="row-icon-btn row-icon-delete" data-delete-user="${u.id}" title="Delete this account" aria-label="Delete account">Delete</button>`}
             </td>
         </tr>`;
 }

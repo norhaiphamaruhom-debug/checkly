@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap');
 
 /* ==========================================================================
    CHECKLY - "composition notebook" theme.
@@ -9,8 +9,8 @@
    ========================================================================== */
 
 :root {
-    --font-display: "Nunito", "Segoe UI", Arial, sans-serif;
-    --font-body: "Nunito", "Segoe UI", Arial, sans-serif;
+    --font-display: "Atkinson Hyperlegible", "Segoe UI", Verdana, sans-serif;
+    --font-body: "Atkinson Hyperlegible", "Segoe UI", Verdana, sans-serif;
 
     --paper: #F7F1E1;
     --paper-line: rgba(112, 145, 184, 0.28);
@@ -76,7 +76,7 @@ body {
     text-transform: capitalize;
     font-family: var(--font-display);
     font-size: 17px;
-    font-weight: 800;
+    font-weight: 700;
 }
 
 .logout-button {
@@ -119,7 +119,7 @@ body {
 
 .list-title {
     font-family: var(--font-display);
-    font-weight: 800;
+    font-weight: 700;
     font-size: 26px;
     margin-top: 20px;
     margin-bottom: 5px;
@@ -130,8 +130,8 @@ body {
 .custom-label {
     width: 90%;
     color: var(--ink);
-    font-weight: 600;
-    font-size: 13px;
+    font-weight: 700;
+    font-size: 15px;
 }
 
 .custom-inp {
@@ -161,7 +161,7 @@ body {
     height: 4.5vh;
     width: 90%;
     border-radius: 6px;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
 
     cursor: pointer;
@@ -243,7 +243,7 @@ body.auth-body {
 
 .auth-tagline {
     margin-top: 10px;
-    font-size: 15px;
+    font-size: 16px;
     color: rgba(255, 255, 255, 0.75);
     max-width: 260px;
 }
@@ -280,7 +280,7 @@ body.auth-body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 14px;
     color: white;
     opacity: 0;
     transform: scale(0.4);
@@ -338,7 +338,7 @@ body.auth-body {
 
 .auth-heading {
     font-family: var(--font-display);
-    font-weight: 800;
+    font-weight: 700;
     font-size: clamp(28px, 5vw, 34px);
     line-height: 1.15;
     color: var(--board);
@@ -349,7 +349,7 @@ body.auth-body {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 13px;
+    font-size: 15px;
     color: var(--ink);
     margin-top: 4px;
     cursor: pointer;
@@ -363,7 +363,7 @@ body.auth-body {
 }
 
 .auth-subheading {
-    font-size: 13px;
+    font-size: 15px;
     color: var(--ink-soft);
     margin-bottom: 14px;
 }
@@ -375,7 +375,7 @@ body.auth-body {
     border-radius: 6px;
     background: var(--board);
     color: white;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
     cursor: pointer;
     transition: background 0.15s ease, transform 0.1s ease;
@@ -396,7 +396,7 @@ body.auth-body {
 
 .auth-switch {
     margin-top: 16px;
-    font-size: 13px;
+    font-size: 15px;
     text-align: center;
     color: var(--ink);
 }
@@ -439,7 +439,7 @@ body.auth-body {
     border: 1.5px solid rgba(51, 44, 34, 0.3);
     background: var(--card);
     color: var(--ink);
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
     cursor: pointer;
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
@@ -482,7 +482,7 @@ body.auth-body {
     margin-top: 10px;
     padding: 8px 10px;
     border-radius: 5px;
-    font-size: 12px;
+    font-size: 14px;
     color: white;
     background: var(--absent);
 }
@@ -499,7 +499,7 @@ body.auth-body {
 .student-name {
     width: 100%;
 
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
     text-align: center;
     padding: 0 4px;
@@ -508,7 +508,7 @@ body.auth-body {
 
 .student-attendance {
     width: 100%;
-    font-size: 11px;
+    font-size: 13px;
     text-align: center;
     letter-spacing: 0.5px;
 }
@@ -559,7 +559,7 @@ body.auth-body {
     border: none;
     border-radius: 4px;
     padding: 5px 2px;
-    font-size: 10px;
+    font-size: 13px;
     font-weight: 700;
     cursor: pointer;
     color: white;
@@ -577,7 +577,7 @@ body.auth-body {
 .empty-state {
     margin-top: 20px;
     color: var(--ink-soft);
-    font-size: 13px;
+    font-size: 15px;
     text-align: center;
     width: 90%;
 }
@@ -601,7 +601,7 @@ body.auth-body {
     border: 1px solid rgba(51, 44, 34, 0.12);
     padding: 10px 15px;
     border-radius: 6px;
-    font-size: 13px;
+    font-size: 15px;
 }
 
 /* --- Admin dashboard --- */
@@ -637,13 +637,13 @@ body.auth-body {
 
 .stat-value {
     font-family: var(--font-display);
-    font-weight: 800;
+    font-weight: 700;
     font-size: 30px;
     color: var(--board);
 }
 
 .stat-label {
-    font-size: 11px;
+    font-size: 13px;
     color: var(--ink-soft);
     margin-top: 2px;
 }
@@ -680,7 +680,7 @@ body.auth-body {
     min-width: 520px;
     table-layout: fixed;
     border-collapse: collapse;
-    font-size: 12px;
+    font-size: 14px;
     margin-top: 10px;
 }
 
@@ -688,7 +688,7 @@ body.auth-body {
     text-align: left;
     padding: 8px 6px;
     color: var(--board);
-    font-size: 11px;
+    font-size: 13px;
     border-bottom: 2px solid var(--board);
 }
 
@@ -723,7 +723,7 @@ body.auth-body {
 .role-badge {
     padding: 2px 8px;
     border-radius: 10px;
-    font-size: 10px;
+    font-size: 13px;
     font-weight: 700;
     color: white;
     text-transform: capitalize;
@@ -739,7 +739,7 @@ body.auth-body {
     color: white;
     border-radius: 4px;
     padding: 4px 8px;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 700;
     cursor: pointer;
 }
@@ -759,7 +759,7 @@ body.auth-body {
 
 .create-user-form .custom-label {
     width: 100%;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .create-user-form .login-button {
@@ -825,7 +825,7 @@ body.auth-body {
 .date-pill {
     background: var(--board);
     color: white;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
     padding: 5px 14px;
     border-radius: 999px;
@@ -897,7 +897,7 @@ body.auth-body {
     padding: 10px 18px;
     border-radius: 20px;
     color: white;
-    font-size: 13px;
+    font-size: 15px;
     text-align: center;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
     opacity: 0;
@@ -932,7 +932,7 @@ body.auth-body {
 
     .custom-inp, .custom-button {
         height: 46px;
-        font-size: 16px; /* prevents iOS auto-zoom on focus */
+        font-size: 17px; /* prevents iOS auto-zoom on focus */
     }
 
     .create-link {
@@ -944,7 +944,7 @@ body.auth-body {
     }
 
     .account-name {
-        font-size: 15px;
+        font-size: 16px;
         max-width: 60vw;
         white-space: nowrap;
         overflow: hidden;
@@ -971,7 +971,7 @@ body.auth-body {
 
     .mark-btn {
         flex: 1 1 45%;
-        font-size: 11px;
+        font-size: 13px;
         padding: 7px 2px;
     }
 
@@ -998,7 +998,7 @@ body.auth-body {
     }
 
     .history-row {
-        font-size: 12px;
+        font-size: 14px;
         padding: 10px 12px;
     }
 
@@ -1052,7 +1052,7 @@ body.auth-body {
     .users-table td::before {
         content: attr(data-label);
         font-weight: bold;
-        font-size: 11px;
+        font-size: 13px;
         opacity: 0.7;
         margin-right: 10px;
     }
@@ -1080,7 +1080,7 @@ body.auth-body {
 .btn {
     padding: 9px 16px;
     border-radius: 6px;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
     cursor: pointer;
     border: 1.5px solid transparent;
@@ -1140,7 +1140,7 @@ body.auth-body {
     border: none;
     color: white;
     font-weight: 700;
-    font-size: 12px;
+    font-size: 14px;
     padding: 4px 10px;
     border-radius: 14px;
     cursor: pointer;
@@ -1228,14 +1228,14 @@ body.auth-body {
     padding: 5px 8px;
     background: var(--card);
     font-family: var(--font-body);
-    font-size: 12px;
+    font-size: 14px;
     color: var(--ink);
     height: 30px;
 }
 
 .date-nav .btn {
     padding: 5px 10px;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .viewing-past-banner {
@@ -1246,7 +1246,7 @@ body.auth-body {
     background: rgba(217, 164, 41, 0.18);
     border: 1px solid rgba(217, 164, 41, 0.5);
     color: var(--ink);
-    font-size: 12px;
+    font-size: 14px;
     text-align: center;
 }
 
@@ -1265,7 +1265,7 @@ body.auth-body {
     z-index: 2;
     background: var(--absent);
     color: white;
-    font-size: 10px;
+    font-size: 13px;
     font-weight: 700;
     padding: 2px 7px;
     border-radius: 10px;
@@ -1290,7 +1290,7 @@ body.auth-body {
     border: 1.5px solid rgba(51, 44, 34, 0.3);
     background: var(--card);
     color: var(--ink);
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
     cursor: pointer;
 }
@@ -1322,7 +1322,7 @@ body.auth-body {
 
 .calendar-month-label {
     font-family: var(--font-display);
-    font-weight: 800;
+    font-weight: 700;
     font-size: 19px;
     color: var(--board);
     min-width: 160px;
@@ -1340,7 +1340,7 @@ body.auth-body {
 
 .calendar-weekday {
     text-align: center;
-    font-size: 10px;
+    font-size: 13px;
     font-weight: 700;
     color: var(--ink-soft);
 }
@@ -1351,8 +1351,8 @@ body.auth-body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 13px;
+    font-weight: 700;
     background: var(--card);
     border: 1px solid rgba(51, 44, 34, 0.12);
     color: var(--ink);
@@ -1372,7 +1372,7 @@ body.auth-body {
     flex-wrap: wrap;
     justify-content: center;
     margin-top: 12px;
-    font-size: 11px;
+    font-size: 13px;
     color: var(--ink-soft);
 }
 
@@ -1453,7 +1453,7 @@ body.auth-body {
 
 .class-card-title {
     font-family: var(--font-display);
-    font-weight: 800;
+    font-weight: 700;
     font-size: 20px;
     color: var(--board);
     line-height: 1.25;
@@ -1472,7 +1472,7 @@ body.auth-body {
 }
 
 .class-card-meta span {
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 700;
     color: var(--ink-soft);
     background: rgba(51, 44, 34, 0.06);
@@ -1481,9 +1481,9 @@ body.auth-body {
 }
 
 .class-card-section-label {
-    font-size: 10.5px;
+    font-size: 13px;
     font-weight: 700;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0.05em;
     color: var(--ink-soft);
     margin-top: 12px;
@@ -1515,7 +1515,7 @@ body.auth-body {
     color: var(--board);
     border-radius: 999px;
     padding: 4px 6px 4px 12px;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
 }
 
@@ -1530,7 +1530,7 @@ body.auth-body {
     background: rgba(47, 74, 59, 0.18);
     color: var(--board);
     cursor: pointer;
-    font-size: 12px;
+    font-size: 14px;
     line-height: 1;
     opacity: 0.75;
 }
@@ -1556,17 +1556,17 @@ body.auth-body {
     width: auto;
     flex: 1 1 auto;
     height: 34px;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .add-teacher-row .btn {
     padding: 6px 14px;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .empty-inline {
     color: var(--ink-soft);
-    font-size: 12px;
+    font-size: 14px;
     font-style: italic;
 }
 
@@ -1578,7 +1578,7 @@ body.auth-body {
     width: 100%;
     padding: 5px 7px;
     height: 30px;
-    font-size: 12px;
+    font-size: 14px;
     border-radius: 5px;
     border: 1.5px solid rgba(51, 44, 34, 0.35);
     background: var(--card);
@@ -1605,7 +1605,7 @@ body.auth-body {
     border: none;
     border-radius: 50%;
     color: white;
-    font-size: 11px;
+    font-size: 13px;
     line-height: 1;
     cursor: pointer;
     transition: filter 0.15s ease, transform 0.1s ease;
@@ -1636,7 +1636,7 @@ body.auth-body {
     border-radius: 999px;
     background: rgba(51, 44, 34, 0.08);
     color: var(--ink);
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 700;
 }
 
@@ -1655,19 +1655,19 @@ body.auth-body {
 }
 
 .import-row input[type="file"] {
-    font-size: 12px;
+    font-size: 14px;
     max-width: 220px;
 }
 
 .import-summary {
     margin-top: 10px;
-    font-size: 12px;
+    font-size: 14px;
     color: var(--ink-soft);
 }
 
 .import-errors {
     margin-top: 6px;
-    font-size: 11px;
+    font-size: 13px;
     color: var(--absent);
     max-height: 120px;
     overflow-y: auto;
@@ -1699,7 +1699,7 @@ body.auth-body {
     flex-wrap: wrap;
     justify-content: center;
     margin-top: 8px;
-    font-size: 11px;
+    font-size: 13px;
     color: var(--ink-soft);
 }
 
@@ -1833,7 +1833,7 @@ body.auth-body {
     padding: 18px 20px;
     font-family: var(--font-display);
     font-size: 24px;
-    font-weight: 800;
+    font-weight: 700;
     color: white;
     border-bottom: 1px solid rgba(255, 255, 255, 0.18);
 }
@@ -1846,7 +1846,7 @@ body.auth-body {
     border-left: 4px solid transparent;
     background: transparent;
     color: white;
-    font-size: 15px;
+    font-size: 16px;
     text-align: left;
     text-decoration: none;
     cursor: pointer;
@@ -1872,7 +1872,7 @@ body.auth-body {
 /* --- Admin: People view (role filter tabs, inline role menu) --- */
 .panel-hint {
     margin: 2px 0 10px;
-    font-size: 12px;
+    font-size: 14px;
     color: var(--ink-soft);
 }
 
@@ -1885,7 +1885,7 @@ body.auth-body {
 
 .filter-tab {
     font: inherit;
-    font-size: 12px;
+    font-size: 14px;
     padding: 6px 12px;
     border: 1px solid rgba(51, 44, 34, 0.25);
     border-radius: 999px;
@@ -1930,7 +1930,7 @@ body.auth-body {
     gap: 12px;
     padding: 8px 0;
     border-bottom: 1px solid rgba(51, 44, 34, 0.12);
-    font-size: 13px;
+    font-size: 15px;
 }
 
 .attention-list li:last-child { border-bottom: 0; }
@@ -1940,7 +1940,7 @@ body.auth-body {
     margin-left: 6px;
     padding: 2px 8px;
     border-radius: 999px;
-    font-size: 10px;
+    font-size: 13px;
     font-weight: 700;
     background: rgba(201, 138, 28, 0.18);
     color: #8a5a00;
@@ -1955,7 +1955,7 @@ body.auth-body {
     margin-bottom: 10px;
     padding: 6px 10px;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 14px;
     background: rgba(201, 138, 28, 0.14);
 }
 
@@ -1985,7 +1985,7 @@ body.auth-body {
 }
 .class-banner[hidden] { display: none; }
 .class-banner-name { font-weight: 700; color: var(--board); }
-.class-banner-meta { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+.class-banner-meta { font-size: 14px; color: var(--ink-soft); margin-top: 2px; }
 
 .history-toolbar {
     display: flex;
@@ -2001,10 +2001,10 @@ body.auth-body {
 
 .history-month {
     margin-top: 10px;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
     letter-spacing: 0.04em;
-    text-transform: uppercase;
+    text-transform: none;
     color: var(--board);
 }
 .history-month:first-child { margin-top: 0; }
@@ -2025,7 +2025,7 @@ body.auth-body {
     border-radius: 999px;
     border: 1px solid rgba(51, 44, 34, 0.25);
     background: var(--card);
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
     color: var(--board);
 }
@@ -2046,7 +2046,7 @@ button.stat-filter.is-active { box-shadow: 0 0 0 2px var(--board); }
     margin: 10px auto 14px;
 }
 .progress-wrap[hidden] { display: none; }
-.progress-text { font-size: 12px; color: var(--ink-soft); margin-bottom: 4px; text-align: center; }
+.progress-text { font-size: 14px; color: var(--ink-soft); margin-bottom: 4px; text-align: center; }
 .progress-bar {
     height: 8px;
     border-radius: 999px;
@@ -2090,20 +2090,20 @@ button.stat-filter.is-active { box-shadow: 0 0 0 2px var(--board); }
     align-items: center;
     justify-content: center;
     color: #fff;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
 }
 
 .roster-main { flex: 1; min-width: 0; text-align: left; }
 .roster-name {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 700;
     color: var(--ink);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-.roster-status { font-size: 11px; text-transform: capitalize; }
+.roster-status { font-size: 13px; text-transform: capitalize; }
 
 .streak-chip {
     display: inline-block;
@@ -2112,12 +2112,12 @@ button.stat-filter.is-active { box-shadow: 0 0 0 2px var(--board); }
     border-radius: 10px;
     background: var(--absent);
     color: #fff;
-    font-size: 10px;
+    font-size: 13px;
     font-weight: 700;
 }
 
 .roster-row .attendance-actions { width: auto; flex: none; padding: 0; gap: 6px; }
-.roster-row .mark-btn { flex: none; min-width: 58px; padding: 7px 10px; font-size: 11px; opacity: 0.55; }
+.roster-row .mark-btn { flex: none; min-width: 58px; padding: 7px 10px; font-size: 13px; opacity: 0.55; }
 .roster-row .mark-btn.is-current,
 .roster-row .mark-btn:hover { opacity: 1; }
 .roster-row .mark-btn.is-current { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px currentColor; }
@@ -2170,7 +2170,7 @@ button.stat-filter.is-active { box-shadow: 0 0 0 2px var(--board); }
     background: #f6e3b4;
     border-bottom: 1px solid rgba(138, 90, 0, 0.35);
     color: #6b4500;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
     text-align: center;
 }
@@ -2179,15 +2179,15 @@ button.stat-filter.is-active { box-shadow: 0 0 0 2px var(--board); }
 /* ---- multi-class: student banner + history ---- */
 .class-banner-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .class-banner-item + .class-banner-item { margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(0,0,0,0.12); }
-.history-class { display: inline-block; margin-left: 6px; font-size: 11px; color: var(--ink-soft); font-weight: 600; }
+.history-class { display: inline-block; margin-left: 6px; font-size: 13px; color: var(--ink-soft); font-weight: 700; }
 #history-class-filter { width: auto; max-width: 180px; }
 
 /* ---- multi-class: admin people table + create form ---- */
 .membership-cell { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.add-class-select { width: auto; min-width: 110px; padding: 4px 8px; font-size: 13px; }
+.add-class-select { width: auto; min-width: 110px; padding: 4px 8px; font-size: 15px; }
 .class-checks { display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; padding: 8px 10px; border: 1px dashed rgba(0,0,0,0.2); border-radius: 8px; }
-.class-check { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
-.label-hint { font-weight: 400; font-size: 12px; opacity: 0.7; }
+.class-check { display: flex; align-items: center; gap: 8px; font-size: 16px; cursor: pointer; }
+.label-hint { font-weight: 400; font-size: 14px; opacity: 0.7; }
 
 
 /* ---- navigation: labeled logout, tab bar, class tabs, clickable stats ---- */
@@ -2211,7 +2211,7 @@ button.stat-filter.is-active { box-shadow: 0 0 0 2px var(--board); }
 .tab-link:hover { background: #fff; }
 .tab-link:focus-visible { outline: 2px solid var(--late); outline-offset: 2px; }
 .tab-link.active { background: var(--board); color: #fff; border-color: var(--board); }
-.tab-icon { font-size: 16px; line-height: 1; }
+.tab-icon { font-size: 17px; line-height: 1; }
 
 /* desktop: a row of pills at the top of the page */
 @media (min-width: 881px) {
@@ -2227,7 +2227,7 @@ button.stat-filter.is-active { box-shadow: 0 0 0 2px var(--board); }
     .tab-link {
         flex: 1; flex-direction: column; gap: 2px; padding: 6px 2px;
         border: 0; border-radius: 10px; background: transparent; color: rgba(255,255,255,0.75);
-        font-size: 12px;
+        font-size: 14px;
     }
     .tab-link:hover { background: rgba(255, 255, 255, 0.1); }
     .tab-link.active { background: var(--board-light); color: #fff; }
@@ -2257,14 +2257,14 @@ button.stat-link:focus-visible { outline: 2px solid var(--late); outline-offset:
 .review-list { margin: 4px 0 6px; border: 1.5px dashed rgba(47, 74, 59, 0.3); border-radius: 8px; background: var(--card); }
 .review-row { display: flex; justify-content: space-between; gap: 16px; padding: 10px 14px; align-items: baseline; }
 .review-row + .review-row { border-top: 1px dashed rgba(47, 74, 59, 0.2); }
-.review-row dt { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-soft); }
+.review-row dt { font-size: 14px; font-weight: 700; text-transform: none; letter-spacing: 0.04em; color: var(--ink-soft); }
 .review-row dd { margin: 0; font-weight: 700; color: var(--ink); text-align: right; overflow-wrap: anywhere; }
 .review-toggle { margin-left: 8px; border: 0; background: none; color: var(--board); font: 700 12px var(--font-body); text-decoration: underline; cursor: pointer; }
-.review-note { font-size: 12px; color: var(--ink-soft); margin-bottom: 4px; }
+.review-note { font-size: 14px; color: var(--ink-soft); margin-bottom: 4px; }
 .review-edit { margin-top: 6px; height: 40px; border: 0; background: none; color: var(--board); font: 700 14px var(--font-body); cursor: pointer; }
 .review-edit:hover { text-decoration: underline; }
 .review-toggle:focus-visible, .review-edit:focus-visible { outline: 2px solid var(--late); outline-offset: 2px; }
-.auth-success { width: 100%; padding: 10px 12px; border-radius: 6px; margin-bottom: 8px; font-size: 13px; font-weight: 700; color: #1f5a37; background: rgba(60, 133, 88, 0.14); border: 1px solid rgba(60, 133, 88, 0.4); }
+.auth-success { width: 100%; padding: 10px 12px; border-radius: 6px; margin-bottom: 8px; font-size: 15px; font-weight: 700; color: #1f5a37; background: rgba(60, 133, 88, 0.14); border: 1px solid rgba(60, 133, 88, 0.4); }
 
 /* ---- register: password eye toggle ---- */
 .pw-field { position: relative; width: 90%; }
@@ -2278,6 +2278,158 @@ button.stat-link:focus-visible { outline: 2px solid var(--late); outline-offset:
 .pw-toggle.is-revealed .pw-eye-off { display: block; }
 
 /* ---- admin: new account indicator ---- */
-.badge-new { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; background: var(--present); color: #fff; vertical-align: middle; }
+.badge-new { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: none; background: var(--present); color: #fff; vertical-align: middle; }
 .users-table tr.row-new td { background: rgba(60, 133, 88, 0.08); }
 .users-table tr.row-new td:first-child { box-shadow: inset 3px 0 0 var(--present); }
+
+
+/* ==========================================================================
+   READABILITY + BEGINNER-FRIENDLY PASS
+   Plain backgrounds (no ruled lines behind text), bigger type, higher
+   contrast, larger tap targets. Loaded last so it wins over older rules.
+   ========================================================================== */
+:root {
+    --paper: #F6F4EE;
+    --card: #FFFFFF;
+    --ink: #1F1B16;
+    --ink-soft: #4F473C;
+    --unmarked: #6B6355;
+    --topbar-h: 64px;
+}
+
+html { font-size: 17px; -webkit-text-size-adjust: 100%; }
+body { font-size: 1rem; line-height: 1.55; background: var(--paper); }
+p, li, dd, td, label { line-height: 1.55; }
+
+/* calm, plain pages */
+.paper-bg, .list-container, .admin-container {
+    background-image: none;
+    background-color: var(--paper);
+}
+.list-container { padding: 28px 20px 40px; }
+.admin-container { padding: calc(var(--topbar-h) + 24px) 20px 48px; max-width: 1100px; margin: 0 auto; }
+
+/* top bar: taller, clearer */
+.topbar { height: var(--topbar-h); min-height: var(--topbar-h); border-bottom-width: 4px; }
+.main-homepage-container { padding-top: var(--topbar-h); }
+@media (max-width: 880px) { .main-homepage-container { padding-top: var(--topbar-h); } }
+.account-name { font-size: 1rem; font-weight: 700; text-transform: none; }
+.logout-button { height: 40px; padding: 0 18px; font-size: 1rem; border-radius: 20px; }
+.burger-btn { min-width: 44px; min-height: 44px; }
+
+/* headings with clear hierarchy */
+.list-title { font-size: 1.6rem; font-weight: 700; margin-top: 8px; margin-bottom: 12px; text-align: left; }
+.dashboard-header .list-title { margin: 0; }
+.auth-heading { font-size: 2rem; line-height: 1.2; }
+.auth-subheading, .panel-hint { font-size: 1rem; color: var(--ink-soft); }
+
+/* forms: big, obvious fields */
+.custom-label { font-size: 1rem; font-weight: 700; color: var(--ink); margin-top: 6px; }
+.custom-inp { min-height: 48px; height: auto; font-size: 1rem; padding: 10px 14px; border-width: 2px; border-radius: 8px; }
+.custom-inp::placeholder { color: #6F675A; opacity: 1; }
+.custom-inp:focus { outline: 3px solid rgba(217, 164, 41, 0.6); outline-offset: 0; border-color: var(--board); }
+.custom-select { padding-right: 10px; }
+.label-hint { font-size: 0.9rem; opacity: 1; color: var(--ink-soft); font-weight: 400; }
+.pw-field .custom-inp { padding-right: 52px; }
+.pw-toggle { width: 40px; height: 40px; right: 4px; color: var(--ink-soft); }
+.pw-toggle svg { width: 22px; height: 22px; }
+.form-error { font-size: 1rem; }
+
+/* buttons: easy to see and tap */
+.btn { min-height: 44px; padding: 10px 18px; font-size: 1rem; border-radius: 8px; border-width: 2px; }
+.btn-outline { border-color: var(--board); color: var(--board); }
+.auth-submit { height: 54px; font-size: 1.1rem; border-radius: 8px; }
+.custom-button, .login-button { min-height: 50px; font-size: 1.05rem; }
+.row-icon-btn { min-width: 40px; min-height: 40px; font-size: 1.1rem; }
+.btn:focus-visible, .auth-submit:focus-visible, .row-icon-btn:focus-visible, .custom-button:focus-visible,
+a:focus-visible, button:focus-visible { outline: 3px solid var(--late); outline-offset: 2px; }
+
+/* navigation tabs */
+.tab-link { font-size: 1rem; padding: 10px 20px; min-height: 44px; border-width: 2px; }
+@media (max-width: 880px) {
+    .tab-link { font-size: 0.85rem; min-height: 56px; }
+    .tab-icon { font-size: 22px; }
+}
+.nav-link { font-size: 1.05rem; padding: 14px 18px; }
+
+/* numbers + cards */
+.stat-card { padding: 16px 18px; }
+.stat-value { font-size: 2.2rem; }
+.stat-label { font-size: 1rem; color: var(--ink-soft); }
+.date-pill { font-size: 1rem; }
+.admin-panel, .class-card { background: var(--card); }
+
+/* tables */
+.users-table th { font-size: 0.9rem; padding: 10px 8px; color: var(--board); }
+.users-table td { font-size: 1rem; padding: 12px 8px; }
+.chip, .filter-tab, .role-tag, .badge-warn, .badge-new { font-size: 0.9rem; }
+.filter-tab { min-height: 40px; padding: 8px 14px; }
+.badge-new { padding: 3px 10px; }
+.role-select { font-size: 0.95rem; }
+
+/* login + sign-up screens */
+.auth-form { max-width: 400px; gap: 10px; }
+.auth-tagline { font-size: 1.3rem; line-height: 1.4; }
+.auth-wordmark { font-size: 2.2rem; }
+.auth-switch, .remember-me-label { font-size: 1rem; }
+.auth-switch a { font-weight: 700; color: var(--board); text-decoration: underline; text-underline-offset: 3px; }
+.remember-me-label input { width: 20px; height: 20px; }
+.review-row dt { font-size: 0.9rem; }
+.review-toggle, .review-edit { font-size: 1rem; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+
+/* ---- second pass: fixes found while reviewing screenshots ---- */
+.auth-form-panel { background-image: none; background-color: var(--paper); }
+.auth-visual::before { opacity: 0.35; }
+
+/* row actions: words instead of mystery icons */
+.row-icon-btn {
+    width: auto; height: auto; min-width: 0; min-height: 40px; padding: 0 14px;
+    border-radius: 8px; font-size: 0.95rem; font-weight: 700; white-space: nowrap;
+}
+.row-icon-reset { color: var(--ink); }
+.row-icon-delete { background: #fff; color: #A3342A; border: 2px solid #A3342A; }
+.row-icon-cancel { background: #fff; color: var(--ink); border: 2px solid var(--unmarked); }
+.row-actions { justify-content: flex-start; gap: 8px; }
+
+/* people table: use the full width and never clip text */
+.users-table { table-layout: auto; width: 100%; }
+@media (min-width: 881px) {
+    .users-table th:nth-child(n), .users-table td:nth-child(n) { width: auto; }
+    .users-table td { overflow: visible; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; vertical-align: middle; }
+    .users-table td:nth-child(3) { white-space: nowrap; }
+    .users-table td:last-child { white-space: normal; min-width: 230px; }
+}
+.role-tag { display: inline-block; white-space: nowrap; padding: 4px 12px; font-size: 0.95rem; }
+.search-input { max-width: 460px; }
+
+/* spacing + small things */
+.dashboard-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; margin: 4px 0 18px; }
+.admin-panel { padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+.admin-panel .list-title:first-child { margin-top: 0; }
+.trends-legend { display: flex; justify-content: center; gap: 22px; font-size: 1rem; margin-top: 8px; }
+.trends-legend span { display: inline-flex; align-items: center; gap: 8px; }
+.legend-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.list-title { text-align: center; }
+.admin-panel .list-title { text-align: left; }
+.empty-state, .empty-inline { font-size: 1rem; color: var(--ink-soft); }
+
+/* ---- third pass: table cells + role menu ---- */
+.admin-container { max-width: 1240px; }
+@media (min-width: 881px) {
+    td.row-actions { display: table-cell; }
+    td.row-actions .row-icon-btn { margin: 0 8px 8px 0; }
+    .users-table td:nth-child(2) { overflow-wrap: normal; word-break: normal; white-space: nowrap; }
+    .users-table td:last-child { min-width: 270px; }
+}
+.users-table td .role-select, .role-select {
+    background: #fff; color: var(--ink); border: 2px solid rgba(31, 27, 22, 0.35); font-weight: 700;
+}
+.role-select.role-teacher { border-color: #35597A; }
+.role-select.role-admin { border-color: var(--absent); }
+.role-select.role-student { border-color: var(--board); }
+
+.users-table td .role-select, .role-select { min-width: 140px; width: auto; padding: 8px 30px 8px 12px; text-overflow: clip; }
+@media (min-width: 881px) { .users-table td:nth-child(3) { min-width: 165px; } }
