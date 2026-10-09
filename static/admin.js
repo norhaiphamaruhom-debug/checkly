@@ -59,6 +59,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!me) return;
     currentUserId = me.id;
     wireTopbar(me);
+    addPasswordEye(document.getElementById("new-password"));
 
     setDatePill(new Date().toISOString().slice(0, 10));
 
@@ -649,19 +650,60 @@ async function quickChangeRole(userId, newRole) {
     }
 }
 
-async function resetPassword(userId) {
-    const newPassword = prompt("New password (4+ characters):");
-    if (newPassword === null) return;
-    if (newPassword.length < 4) {
-        toast("Password must be at least 4 characters.", "error");
-        return;
+function resetPassword(userId) {
+    const u = allUsers.find((x) => String(x.id) === String(userId));
+    let dlg = document.getElementById("reset-password-dialog");
+    if (!dlg) {
+        dlg = document.createElement("dialog");
+        dlg.id = "reset-password-dialog";
+        dlg.className = "password-dialog";
+        dlg.innerHTML = `
+            <form method="dialog" id="reset-password-form" novalidate>
+                <h2 class="dialog-title">Reset password</h2>
+                <div class="empty-state" id="reset-password-who" style="margin:0 0 4px; text-align:left;"></div>
+                <label class="custom-label" for="reset-password-input">New password</label>
+                <input class="custom-inp" type="password" id="reset-password-input" autocomplete="new-password" minlength="4" required>
+                <div class="form-error" id="reset-password-error" role="alert" hidden></div>
+                <div class="dialog-actions">
+                    <button type="button" class="btn btn-outline" id="reset-password-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-solid" id="reset-password-save">Reset password</button>
+                </div>
+            </form>`;
+        document.body.appendChild(dlg);
+        addPasswordEye(dlg.querySelector("#reset-password-input"));
+
+        const form = dlg.querySelector("#reset-password-form");
+        const errorEl = dlg.querySelector("#reset-password-error");
+        dlg.querySelector("#reset-password-cancel").addEventListener("click", () => dlg.close());
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            errorEl.hidden = true;
+            const newPassword = dlg.querySelector("#reset-password-input").value;
+            if (newPassword.length < 4) {
+                errorEl.textContent = "Password must be at least 4 characters.";
+                errorEl.hidden = false;
+                return;
+            }
+            const saveBtn = dlg.querySelector("#reset-password-save");
+            saveBtn.disabled = true;
+            try {
+                await apiPost("/api/users/reset-password", { id: Number(dlg.dataset.userId), newPassword });
+                dlg.close();
+                toast("Password reset.");
+            } catch (err) {
+                errorEl.textContent = err.message;
+                errorEl.hidden = false;
+            } finally {
+                saveBtn.disabled = false;
+            }
+        });
     }
-    try {
-        await apiPost("/api/users/reset-password", { id: Number(userId), newPassword });
-        toast("Password reset.");
-    } catch (err) {
-        toast(err.message, "error");
-    }
+    dlg.dataset.userId = userId;
+    dlg.querySelector("#reset-password-who").textContent = u ? `For ${u.name}` : "";
+    dlg.querySelector("#reset-password-form").reset();
+    dlg.querySelector("#reset-password-error").hidden = true;
+    dlg.showModal();
+    dlg.querySelector("#reset-password-input").focus();
 }
 
 async function deleteUser(userId) {
