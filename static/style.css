@@ -2588,3 +2588,25 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--late); outline-
 .request-actions .add-class-select { flex: 1 1 100%; width: 100%; min-width: 0; max-width: 100%; height: 40px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
 .request-btn { flex: 1 1 auto; min-height: 38px; padding: 6px 12px; }
 .users-table .membership-cell { flex-wrap: wrap; }
+
+
+/* ---- People table: calmer layout (less clutter per row) ---- */
+.request-box { display: flex; flex-direction: column; gap: 6px; max-width: 280px; margin-top: 0; padding: 10px; }
+.request-badge { align-self: flex-start; white-space: nowrap; padding: 2px 10px; font-size: 0.8rem; line-height: 1.4; }
+.request-asked { margin: 0; font-size: 0.9rem; font-weight: 600; line-height: 1.35; overflow-wrap: normal; }
+.request-label { display: block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); }
+.request-hint { margin: 0; font-size: 0.85rem; }
+.request-actions { margin-top: 2px; gap: 6px 10px; align-items: center; }
+.request-actions .add-class-select { flex: 1 1 100%; height: 38px; font-size: 0.95rem; }
+.request-actions [data-approve-request] { flex: 1 1 auto; white-space: nowrap; min-height: 36px; padding: 6px 14px; }
+.request-actions [data-dismiss-request] { flex: 0 0 auto; white-space: nowrap; min-height: 36px; padding: 6px 4px; background: none; border: 0; box-shadow: none; color: var(--ink-soft); text-decoration: underline; font-weight: 600; }
+.users-table .membership-cell + .request-box { margin-top: 8px; }
+
+@media (min-width: 881px) {
+    .users-table td:first-child { min-width: 110px; }
+    .users-table td:nth-child(4) { min-width: 240px; vertical-align: top; }
+    /* Edit / Reset password / Delete: one tidy column instead of a ragged wrap */
+    .users-table td.row-actions { min-width: 150px; width: 160px; }
+    .users-table td.row-actions .row-icon-btn { display: block; width: 100%; margin: 0 0 6px 0; }
+    .users-table td.row-actions .row-icon-btn:last-child { margin-bottom: 0; }
+}

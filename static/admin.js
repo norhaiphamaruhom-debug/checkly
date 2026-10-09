@@ -540,20 +540,24 @@ function renderUsers(users) {
 function membershipCell(u, editable) {
     if (u.role !== "student" && u.role !== "teacher") return "&mdash;";
     const mine = u.classes || [];
-    const chips = mine.length
+    const pending = !!(editable && u.role === "student" && u.request);
+    const chips = !mine.length && pending
+        ? ""
+        : mine.length
         ? mine.map((c) => `<span class="chip">${escapeHtml(c.name)}${editable
               ? `<button type="button" class="chip-remove" data-remove-membership="${u.id}" data-class="${c.id}" title="Remove from ${escapeHtml(c.name)}" aria-label="Remove from ${escapeHtml(c.name)}">&times;</button>`
               : ""}</span>`).join("")
         : `<span class="empty-inline">${u.role === "teacher" ? "No classes" : "No class yet"}</span>`;
     const have = new Set(mine.map((c) => c.id));
     const addable = allClasses.filter((c) => !have.has(c.id));
-    const add = editable && addable.length
+    const add = editable && addable.length && !pending
         ? `<select class="custom-inp custom-select add-class-select" data-add-membership="${u.id}" aria-label="Add a class for ${escapeHtml(u.name)}">
                <option value="">+ Add class</option>
                ${addable.map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("")}
            </select>`
         : "";
-    return `<div class="membership-cell">${chips}${add}</div>${editable ? requestBox(u) : ""}`;
+    const top = chips || add ? `<div class="membership-cell">${chips}${add}</div>` : "";
+    return `${top}${editable ? requestBox(u) : ""}`;
 }
 
 // Classes that fit what the student asked for at sign-up: same year and course,
@@ -579,11 +583,11 @@ function requestBox(u) {
     const opt = (c) => `<option value="${c.id}">${escapeHtml(classLabel(c))}</option>`;
     const preselect = exact.length ? exact[0].id : suggested.length === 1 ? suggested[0].id : "";
     const group = (label, list) => list.length ? `<optgroup label="${label}">${list.map(opt).join("")}</optgroup>` : "";
-    const hint = suggested.length ? "" : '<div class="request-hint">No class matches this yet. Pick one below or add the class first.</div>';
+    const hint = suggested.length ? "" : '<div class="request-hint">No matching class yet.</div>';
     return `
         <div class="request-box">
-            <div><span class="badge-warn request-badge">Waiting for approval</span></div>
-            <div class="request-asked">Asked for: ${escapeHtml(asked)}</div>
+            <span class="badge-warn request-badge">Waiting for approval</span>
+            <div class="request-asked"><span class="request-label">Asked for</span>${escapeHtml(asked)}</div>
             ${hint}
             <div class="request-actions">
                 <select class="custom-inp custom-select add-class-select" id="approve-class-${u.id}" aria-label="Class to add ${escapeHtml(u.name)} to">
