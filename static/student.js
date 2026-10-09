@@ -67,6 +67,13 @@ function setupClassFilter(options) {
 
 let lastTodayStatus = "UNMARKED";
 
+function statusWord(st) {
+    return { PRESENT: "Present", LATE: "Late", ABSENT: "Absent", UNMARKED: "Not marked yet" }[st] || st;
+}
+function statusSentence(st) {
+    return { PRESENT: "You're present today", LATE: "You're marked late today", ABSENT: "You're marked absent today", UNMARKED: "Your teacher hasn't marked you yet today" }[st] || st;
+}
+
 // Stats, list and calendar all follow the class filter, so "Present overall"
 // means "overall for the class you're looking at".
 function renderHistory(todayStatus) {
@@ -95,7 +102,7 @@ function renderHistory(todayStatus) {
     summaryEl.innerHTML = `
         <div class="stat-card stat-${status.toLowerCase()}">
             <div class="stat-value status-symbol status-${status}">${statusSymbol(status)}</div>
-            <div class="stat-label">You're ${status.toLowerCase()} today</div>
+            <div class="stat-label">${statusSentence(status)}</div>
         </div>
         ${percentCard}
         ${countCards}
@@ -128,9 +135,10 @@ function renderClassBanner(classes, todayByClass) {
         <div class="class-banner-item">
             <div>
                 <div class="class-banner-name">${escapeHtml(c.name)}</div>
-                <div class="class-banner-meta">${[meta, teachers].filter(Boolean).map(escapeHtml).join(" \u00B7 ")}</div>
+                ${meta ? `<div class="class-banner-meta">${escapeHtml(meta)}</div>` : ""}
+                <div class="class-banner-meta">${escapeHtml(teachers)}</div>
             </div>
-            <div class="history-status status-${st}">${st}</div>
+            <div class="history-status status-${st}">${statusWord(st)}</div>
         </div>`;
     }).join("");
 }
