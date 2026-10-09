@@ -1,58 +1,10 @@
-const YEAR_LEVELS = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
-// Edit this list to change the courses offered in the dropdown.
-const COURSES = [
-    "BS Information Technology",
-    "BS Computer Science",
-    "BS Education",
-    "BS Business Administration",
-    "BS Accountancy",
-    "BS Nursing",
-    "BS Hospitality Management",
-    "BS Criminology",
-    "BS Psychology",
-    "BS Engineering",
-];
-// Edit this list to change the sets offered in the dropdown.
-const SETS = ["Set A", "Set B", "Set C", "Set D", "Set E", "Set F"];
-const OTHER_COURSE = "__other__";
-
-function fillSetSelect(sel, current = "") {
-    const sets = current && !SETS.includes(current) ? [...SETS, current] : SETS;
-    sel.innerHTML = '<option value="">Set (optional)</option>' +
-        sets.map((x) => `<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join("");
-    sel.value = current;
-}
-
-// Fill a year + course dropdown pair (and its "other" text box).
-// `current` values that aren't in the lists (older data) are kept, not lost.
-function fillClassSelects(yearSel, courseSel, otherInput, year = "", course = "") {
-    const years = year && !YEAR_LEVELS.includes(year) ? [...YEAR_LEVELS, year] : YEAR_LEVELS;
-    yearSel.innerHTML = '<option value="">Year level (optional)</option>' +
-        years.map((y) => `<option value="${escapeHtml(y)}">${escapeHtml(y)}</option>`).join("");
-    yearSel.value = year;
-    courseSel.innerHTML = '<option value="">Course (optional)</option>' +
-        COURSES.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("") +
-        `<option value="${OTHER_COURSE}">Other (type it in)</option>`;
-    const isOther = course && !COURSES.includes(course);
-    courseSel.value = isOther ? OTHER_COURSE : course;
-    otherInput.value = isOther ? course : "";
-    otherInput.hidden = !isOther;
-    courseSel.onchange = () => {
-        otherInput.hidden = courseSel.value !== OTHER_COURSE;
-        if (!otherInput.hidden) otherInput.focus();
-    };
-}
-
-function readCourse(courseSel, otherInput) {
-    return courseSel.value === OTHER_COURSE ? otherInput.value.trim() : courseSel.value;
-}
-
 let allUsers = [];
 let allClasses = [];
 let currentUserId = null;
 let editingUserId = null;
 let roleFilter = "all";
 let unassignedOnly = false;
+let pendingOnly = false;   // show only students waiting for class approval
 
 document.addEventListener("DOMContentLoaded", async () => {
     const me = await guardPage("admin");
@@ -75,12 +27,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         btn.addEventListener("click", () => {
             roleFilter = btn.dataset.roleFilter;
             unassignedOnly = false;
+            pendingOnly = false;
             renderUsers(filteredUsers());
         })
     );
 
     document.getElementById("filter-notice-clear").addEventListener("click", () => {
         unassignedOnly = false;
+        pendingOnly = false;
         renderUsers(filteredUsers());
     });
 
@@ -120,6 +74,7 @@ async function loadOverview() {
             card.addEventListener("click", () => {
                 roleFilter = card.dataset.goRole;
                 unassignedOnly = false;
+                pendingOnly = false;
                 document.getElementById("user-search").value = "";
                 renderUsers(filteredUsers());
                 goToView("accounts");
@@ -190,7 +145,21 @@ function renderAttention() {
     if (!panel || !list) return;
 
     const items = [];
-    const noClass = allUsers.filter((u) => u.role === "student" && !(u.classes || []).length).length;
+    const waiting = allUsers.filter((u) => u.role === "student" && u.request).length;
+    if (waiting) {
+        items.push({
+            text: `${waiting} student${waiting === 1 ? " is" : "s are"} waiting for class approval`,
+            action: "Review",
+            run: () => {
+                roleFilter = "student";
+                unassignedOnly = false;
+                pendingOnly = true;
+                renderUsers(filteredUsers());
+                goToView("accounts");
+            },
+        });
+    }
+    const noClass = allUsers.filter((u) => u.role === "student" && !u.request && !(u.classes || []).length).length;
     if (noClass) {
         items.push({
             text: `${noClass} student${noClass === 1 ? " has" : "s have"} no class yet`,
@@ -198,6 +167,7 @@ function renderAttention() {
             run: () => {
                 roleFilter = "student";
                 unassignedOnly = true;
+                pendingOnly = false;
                 renderUsers(filteredUsers());
                 goToView("accounts");
             },
@@ -488,7 +458,8 @@ function filteredUsers() {
     const term = (document.getElementById("user-search").value || "").trim().toLowerCase();
     return allUsers.filter((u) => {
         if (roleFilter !== "all" && u.role !== roleFilter) return false;
-        if (unassignedOnly && (u.role !== "student" || (u.classes || []).length)) return false;
+        if (unassignedOnly && (u.role !== "student" || u.request || (u.classes || []).length)) return false;
+        if (pendingOnly && !(u.role === "student" && u.request)) return false;
         if (!term) return true;
         return u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term);
     });
@@ -506,8 +477,10 @@ function updateRoleFilterTabs() {
     });
     const notice = document.getElementById("filter-notice");
     if (notice) {
-        notice.hidden = !unassignedOnly;
-        document.getElementById("filter-notice-text").textContent = "Showing students with no class.";
+        notice.hidden = !(unassignedOnly || pendingOnly);
+        document.getElementById("filter-notice-text").textContent = pendingOnly
+            ? "Showing students waiting for class approval."
+            : "Showing students with no class.";
     }
 }
 
@@ -547,6 +520,14 @@ function renderUsers(users) {
     tbody.querySelectorAll("[data-remove-membership]").forEach((btn) =>
         btn.addEventListener("click", () => changeMembership("remove", btn.dataset.removeMembership, btn.dataset.class))
     );
+    tbody.querySelectorAll("[data-approve-request]").forEach((btn) => {
+        const sel = document.getElementById(`approve-class-${btn.dataset.approveRequest}`);
+        if (sel && btn.dataset.preselect) sel.value = btn.dataset.preselect;
+        btn.addEventListener("click", () => approveRequest(btn.dataset.approveRequest));
+    });
+    tbody.querySelectorAll("[data-dismiss-request]").forEach((btn) =>
+        btn.addEventListener("click", () => dismissRequest(btn.dataset.dismissRequest))
+    );
     tbody.querySelectorAll("[data-add-membership]").forEach((select) =>
         select.addEventListener("change", () => {
             if (select.value) changeMembership("add", select.dataset.addMembership, select.value);
@@ -572,7 +553,73 @@ function membershipCell(u, editable) {
                ${addable.map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("")}
            </select>`
         : "";
-    return `<div class="membership-cell">${chips}${add}</div>`;
+    return `<div class="membership-cell">${chips}${add}</div>${editable ? requestBox(u) : ""}`;
+}
+
+// Classes that fit what the student asked for at sign-up: same year and course,
+// with an exact set match listed first.
+function suggestedClassesFor(req) {
+    const norm = (v) => String(v || "").trim().toLowerCase();
+    const fits = allClasses.filter(
+        (c) => norm(c.year_level) === norm(req.yearLevel) && norm(c.course) === norm(req.course)
+    );
+    const exact = fits.filter((c) => req.setName && norm(c.set_name) === norm(req.setName));
+    return { exact, others: fits.filter((c) => !exact.includes(c)) };
+}
+
+// "Waiting for approval" block for a student who asked for a class when signing up.
+function requestBox(u) {
+    if (u.role !== "student" || !u.request) return "";
+    const r = u.request;
+    const asked = [r.yearLevel, r.setName, r.course].filter(Boolean).join(" \u00B7 ");
+    const { exact, others } = suggestedClassesFor(r);
+    const suggested = [...exact, ...others];
+    const have = new Set((u.classes || []).map((c) => c.id));
+    const rest = allClasses.filter((c) => !suggested.includes(c) && !have.has(c.id));
+    const opt = (c) => `<option value="${c.id}">${escapeHtml(classLabel(c))}</option>`;
+    const preselect = exact.length ? exact[0].id : suggested.length === 1 ? suggested[0].id : "";
+    const group = (label, list) => list.length ? `<optgroup label="${label}">${list.map(opt).join("")}</optgroup>` : "";
+    const hint = suggested.length ? "" : '<div class="request-hint">No class matches this yet. Pick one below or add the class first.</div>';
+    return `
+        <div class="request-box">
+            <div><span class="badge-warn request-badge">Waiting for approval</span></div>
+            <div class="request-asked">Asked for: ${escapeHtml(asked)}</div>
+            ${hint}
+            <div class="request-actions">
+                <select class="custom-inp custom-select add-class-select" id="approve-class-${u.id}" aria-label="Class to add ${escapeHtml(u.name)} to">
+                    <option value="">Choose a class...</option>
+                    ${group("Matches their request", suggested)}
+                    ${group("Other classes", rest)}
+                </select>
+                <button type="button" class="btn btn-solid request-btn" data-approve-request="${u.id}" data-preselect="${preselect}">Approve</button>
+                <button type="button" class="btn btn-outline request-btn" data-dismiss-request="${u.id}">Dismiss</button>
+            </div>
+        </div>`;
+}
+
+async function approveRequest(studentId) {
+    const sel = document.getElementById(`approve-class-${studentId}`);
+    if (!sel || !sel.value) {
+        toast("Choose which class to add them to first.", "error");
+        return;
+    }
+    try {
+        await apiPost("/api/class-requests/approve", { studentId: Number(studentId), classId: Number(sel.value) });
+        toast("Approved. They're now in the class.");
+        await Promise.all([loadUsers(), loadClasses()]);
+    } catch (err) {
+        toast(err.message, "error");
+    }
+}
+
+async function dismissRequest(studentId) {
+    try {
+        await apiPost("/api/class-requests/dismiss", { studentId: Number(studentId) });
+        toast("Request dismissed.");
+        await Promise.all([loadUsers(), loadClasses()]);
+    } catch (err) {
+        toast(err.message, "error");
+    }
 }
 
 function renderUserRow(u) {

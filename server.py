@@ -108,6 +108,18 @@ def init_db():
             FOREIGN KEY(student_id) REFERENCES users(id) ON DELETE CASCADE
         )"""
     )
+    # A student can ask for a class when signing up. The request waits here
+    # until an admin approves it (adds them to a class) or dismisses it.
+    conn.execute(
+        """CREATE TABLE IF NOT EXISTS class_requests (
+            student_id INTEGER PRIMARY KEY,
+            year_level TEXT,
+            set_name TEXT,
+            course TEXT,
+            created_at TEXT,
+            FOREIGN KEY(student_id) REFERENCES users(id) ON DELETE CASCADE
+        )"""
+    )
     conn.commit()
 
     # Migration 0: remember when each account was created so the admin view
@@ -301,6 +313,20 @@ def set_user_classes(conn, user_id, role, class_ids):
     for cid in dict.fromkeys(class_ids or []):  # de-dupe, keep order
         if conn.execute("SELECT 1 FROM classes WHERE id = ?", (cid,)).fetchone():
             conn.execute(f"INSERT OR IGNORE INTO {table} (class_id, {col}) VALUES (?,?)", (cid, user_id))
+
+
+def clear_class_request(conn, student_id):
+    """Once an admin has dealt with a student's class, the request is no longer pending."""
+    conn.execute("DELETE FROM class_requests WHERE student_id = ?", (student_id,))
+
+
+def get_class_request(conn, student_id):
+    row = conn.execute(
+        "SELECT year_level, set_name, course FROM class_requests WHERE student_id = ?", (student_id,)
+    ).fetchone()
+    if not row:
+        return None
+    return {"yearLevel": row["year_level"], "setName": row["set_name"], "course": row["course"]}
 
 
 def clean_id_list(value):
@@ -515,6 +541,7 @@ class CheeklyHandler(BaseHTTPRequestHandler):
                 "SELECT class_id, status FROM attendance WHERE student_id = ? AND att_date = ?",
                 (user["id"], today),
             ).fetchall()
+            pending_request = get_class_request(conn, user["id"])
             conn.close()
 
             records = []
@@ -547,6 +574,7 @@ class CheeklyHandler(BaseHTTPRequestHandler):
                 "date": today,
                 "todayStatus": overall,
                 "todayByClass": today_classes,
+                "pendingRequest": pending_request,
                 "records": records,
                 "percentPresent": percent_present,
                 "counts": counts,
@@ -584,6 +612,12 @@ class CheeklyHandler(BaseHTTPRequestHandler):
                 memberships.setdefault(r["uid"], []).append({"id": r["id"], "name": r["name"]})
             for u in users:
                 u["classes"] = memberships.get(u["id"], []) if u["role"] in ("student", "teacher") else []
+            requests = {
+                r["student_id"]: {"yearLevel": r["year_level"], "setName": r["set_name"], "course": r["course"]}
+                for r in conn.execute("SELECT student_id, year_level, set_name, course FROM class_requests")
+            }
+            for u in users:
+                u["request"] = requests.get(u["id"]) if u["role"] == "student" else None
             conn.close()
             self.send_json({"users": users})
             return
@@ -906,6 +940,8 @@ class CheeklyHandler(BaseHTTPRequestHandler):
             elif current["role"] != role:
                 # student <-> teacher memberships don't carry over
                 set_user_classes(conn, target_id, role, [])
+            if role != "student":
+                clear_class_request(conn, target_id)
             conn.commit()
             conn.close()
             self.send_json({"ok": True})
@@ -1038,6 +1074,7 @@ class CheeklyHandler(BaseHTTPRequestHandler):
                     "INSERT OR IGNORE INTO class_students (class_id, student_id) VALUES (?,?)",
                     (class_id, student_id),
                 )
+                clear_class_request(conn, student_id)
             else:
                 conn.execute(
                     "DELETE FROM class_students WHERE class_id = ? AND student_id = ?",
@@ -1072,8 +1109,40 @@ class CheeklyHandler(BaseHTTPRequestHandler):
                     self.send_json({"error": "That class doesn't exist."}, 400)
                     return
                 conn.execute(f"INSERT OR IGNORE INTO {table} (class_id, {col}) VALUES (?,?)", (class_id, target_id))
+                clear_class_request(conn, target_id)
             else:
                 conn.execute(f"DELETE FROM {table} WHERE class_id = ? AND {col} = ?", (class_id, target_id))
+            conn.commit()
+            conn.close()
+            self.send_json({"ok": True})
+            return
+
+        # A student asked for a class at sign-up: approve = put them in the
+        # class the admin picked, dismiss = just forget the request.
+        if path in ("/api/class-requests/approve", "/api/class-requests/dismiss"):
+            user = self.require_role("admin")
+            if not user:
+                return
+            student_id = body.get("studentId")
+            conn = get_db()
+            student = conn.execute(
+                "SELECT id FROM users WHERE id = ? AND role = 'student'", (student_id,)
+            ).fetchone()
+            if not student:
+                conn.close()
+                self.send_json({"error": "That student doesn't exist."}, 400)
+                return
+            if path.endswith("/approve"):
+                class_id = body.get("classId")
+                if not conn.execute("SELECT 1 FROM classes WHERE id = ?", (class_id,)).fetchone():
+                    conn.close()
+                    self.send_json({"error": "Pick a class to add them to."}, 400)
+                    return
+                conn.execute(
+                    "INSERT OR IGNORE INTO class_students (class_id, student_id) VALUES (?,?)",
+                    (class_id, student_id),
+                )
+            clear_class_request(conn, student_id)
             conn.commit()
             conn.close()
             self.send_json({"ok": True})
@@ -1117,7 +1186,7 @@ class CheeklyHandler(BaseHTTPRequestHandler):
 
     # -- shared account creation logic ---------------------------------------
 
-    def create_user(self, body, allow_admin):
+    def create_user(self, body, allow_admin, class_request=None):
         name = (body.get("name") or "").strip()
         email = (body.get("email") or "").strip().lower()
         password = body.get("password") or ""
@@ -1150,6 +1219,12 @@ class CheeklyHandler(BaseHTTPRequestHandler):
             (name, email, hash_password(password), role),
         )
         set_user_classes(conn, cur.lastrowid, role, class_ids)
+        if class_request and role == "student":
+            conn.execute(
+                """INSERT INTO class_requests (student_id, year_level, set_name, course, created_at)
+                   VALUES (?,?,?,?,datetime('now'))""",
+                (cur.lastrowid, class_request["year_level"], class_request["set_name"], class_request["course"]),
+            )
         conn.commit()
         new_id = cur.lastrowid
         conn.close()
@@ -1158,14 +1233,29 @@ class CheeklyHandler(BaseHTTPRequestHandler):
     def api_register(self, body):
         # Public signup can only ever create a student account. Any "role",
         # "adminCode" or "classId" sent by the client is ignored; only an
-        # admin can promote an account (see /api/users/update).
+        # admin can promote an account (see /api/users/update). The student
+        # may *ask* for a class (year, set, course); that is only a request an
+        # admin has to approve - it never puts them in a class by itself.
+        year_level = (body.get("yearLevel") or "").strip()
+        set_name = (body.get("setName") or "").strip()[:40]
+        course = (body.get("course") or "").strip()[:80]
+        if year_level not in YEAR_LEVELS:
+            self.send_json({"error": "Please choose your year level."}, 400)
+            return
+        if not course:
+            self.send_json({"error": "Please choose your course."}, 400)
+            return
         safe_body = {
             "name": body.get("name"),
             "email": body.get("email"),
             "password": body.get("password"),
             "role": "student",
         }
-        self.create_user(safe_body, allow_admin=False)
+        self.create_user(
+            safe_body,
+            allow_admin=False,
+            class_request={"year_level": year_level, "set_name": set_name, "course": course},
+        )
 
     def api_login(self, body):
         email = (body.get("email") or "").strip().lower()

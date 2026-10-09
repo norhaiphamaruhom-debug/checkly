@@ -41,7 +41,7 @@ async function loadHistory() {
     myClasses = data.classes || [];
     todayDate = data.date;
 
-    renderClassBanner(myClasses, data.todayByClass || []);
+    renderClassBanner(myClasses, data.todayByClass || [], data.pendingRequest);
     setupClassFilter(data.classFilterOptions || []);
     renderHistory(data.todayStatus);
 
@@ -115,12 +115,17 @@ function renderHistory(todayStatus) {
     if (calendarCursor) renderCalendar();
 }
 
-function renderClassBanner(classes, todayByClass) {
+function renderClassBanner(classes, todayByClass, pendingRequest) {
     const el = document.getElementById("class-banner");
     if (!el) return;
     el.hidden = false;
     if (!classes.length) {
-        el.innerHTML = '<div class="class-banner-name">No classes yet</div><div class="class-banner-meta">An admin will add you to your classes.</div>';
+        if (pendingRequest) {
+            const asked = [pendingRequest.yearLevel, pendingRequest.setName, pendingRequest.course].filter(Boolean).join(" \u00B7 ");
+            el.innerHTML = `<div class="class-banner-name">Waiting for approval</div><div class="class-banner-meta">You asked for ${escapeHtml(asked)}. An admin will confirm it soon.</div>`;
+        } else {
+            el.innerHTML = '<div class="class-banner-name">No classes yet</div><div class="class-banner-meta">An admin will add you to your classes.</div>';
+        }
         return;
     }
     const todayMap = {};

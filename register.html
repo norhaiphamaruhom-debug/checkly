@@ -45,7 +45,7 @@
         <section class="auth-form-panel">
             <form class="auth-form" id="register-form" novalidate>
                 <h1 class="auth-heading">Create your account</h1>
-                <p class="auth-subheading">Sign up as a student. Teacher and admin access is granted by an administrator.</p>
+                <p class="auth-subheading">Sign up as a student and tell us your class. Teacher and admin access is granted by an administrator.</p>
 
                 <label class="custom-label" for="name">Full name</label>
                 <input class="custom-inp" type="text" id="name" autocomplete="name" required>
@@ -71,6 +71,16 @@
                     </button>
                 </div>
 
+                <label class="custom-label" for="year">Year level</label>
+                <select class="custom-inp custom-select" id="year" required></select>
+
+                <label class="custom-label" for="course">Course</label>
+                <select class="custom-inp custom-select" id="course" required></select>
+                <input class="custom-inp" type="text" id="course-other" placeholder="Type your course name" aria-label="Your course name" hidden style="margin-top:8px;">
+
+                <label class="custom-label" for="set">Set <span class="label-hint">(if you know it)</span></label>
+                <select class="custom-inp custom-select" id="set"></select>
+
                 <button class="auth-submit" type="submit">Review details</button>
 
                 <p class="auth-switch">Already have an account? <a href="index.html">Log in</a></p>
@@ -89,8 +99,9 @@
                             <button type="button" class="review-toggle" id="review-toggle" aria-pressed="false">Show</button></dd>
                     </div>
                     <div class="review-row"><dt>Account type</dt><dd>Student</dd></div>
+                    <div class="review-row"><dt>Class</dt><dd id="review-class"></dd></div>
                 </dl>
-                <p class="review-note">An admin will add you to your classes and can change your account type later.</p>
+                <p class="review-note">This is a request: an admin will check it and add you to your class. You can still log in while you wait.</p>
 
                 <button class="auth-submit" type="button" id="confirm-btn">Create account</button>
                 <button class="review-edit" type="button" id="edit-btn">&#8592; Go back and edit</button>

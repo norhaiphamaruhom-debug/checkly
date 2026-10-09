@@ -2578,3 +2578,13 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--late); outline-
 .late-btn { color: #1F1B16; }
 .roster-row .mark-btn:not(.is-current):hover { filter: brightness(0.95); }
 .roster-row .mark-btn.is-current { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--ink); }
+
+/* --- Class requests (sign-up "waiting for approval") --- */
+.request-box { flex-basis: 100%; max-width: 310px; box-sizing: border-box; margin-top: 8px; padding: 10px 12px; border: 1px dashed rgba(201, 138, 28, 0.6); border-radius: 8px; background: rgba(201, 138, 28, 0.08); }
+.request-badge { margin-left: 0; }
+.request-asked { margin-top: 6px; font-size: 0.95rem; font-weight: 700; color: var(--ink); }
+.request-hint { margin-top: 4px; font-size: 0.9rem; color: var(--ink-soft); }
+.request-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+.request-actions .add-class-select { flex: 1 1 100%; width: 100%; min-width: 0; max-width: 100%; height: 40px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+.request-btn { flex: 1 1 auto; min-height: 38px; padding: 6px 12px; }
+.users-table .membership-cell { flex-wrap: wrap; }

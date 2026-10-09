@@ -6,7 +6,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const passwordInput = document.getElementById("password");
     const password2Input = document.getElementById("password2");
     const confirmBtn = document.getElementById("confirm-btn");
+    const yearSel = document.getElementById("year");
+    const courseSel = document.getElementById("course");
+    const courseOther = document.getElementById("course-other");
+    const setSel = document.getElementById("set");
     let showPassword = false;
+
+    // Year, course and set come from the same lists the admin uses for classes.
+    fillClassSelects(yearSel, courseSel, courseOther, "", "", false);
+    fillSetSelect(setSel, "", false);
+
+    function classRequestText() {
+        return [yearSel.value, setSel.value, readCourse(courseSel, courseOther)].filter(Boolean).join(" \u00B7 ");
+    }
 
     function showStep(step) {
         form.hidden = step !== "form";
@@ -24,12 +36,15 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Please enter a valid email address.";
         if (passwordInput.value.length < 4) return "Password must be at least 4 characters.";
         if (passwordInput.value !== password2Input.value) return "The two passwords don't match.";
+        if (!yearSel.value) return "Please choose your year level.";
+        if (!readCourse(courseSel, courseOther)) return "Please choose your course.";
         return "";
     }
 
     function renderReview() {
         document.getElementById("review-name").textContent = nameInput.value.trim();
         document.getElementById("review-email").textContent = emailInput.value.trim().toLowerCase();
+        document.getElementById("review-class").textContent = classRequestText();
         const pw = passwordInput.value;
         document.getElementById("review-password").textContent = showPassword ? pw : "\u2022".repeat(pw.length);
         const toggle = document.getElementById("review-toggle");
@@ -83,6 +98,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 name: nameInput.value.trim(),
                 email: emailInput.value.trim(),
                 password: passwordInput.value,
+                yearLevel: yearSel.value,
+                setName: setSel.value,
+                course: readCourse(courseSel, courseOther),
             });
             try { sessionStorage.setItem("checkly-just-registered", emailInput.value.trim().toLowerCase()); } catch (err) { /* ignore */ }
             window.location.href = "index.html";

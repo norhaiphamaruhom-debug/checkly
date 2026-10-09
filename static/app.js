@@ -1,5 +1,55 @@
 // Shared helpers used across all Checkly pages.
 
+// Class options shared by the admin dashboard and the sign-up page.
+const YEAR_LEVELS = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
+// Edit this list to change the courses offered in the dropdown.
+const COURSES = [
+    "BS Information Technology",
+    "BS Computer Science",
+    "BS Education",
+    "BS Business Administration",
+    "BS Accountancy",
+    "BS Nursing",
+    "BS Hospitality Management",
+    "BS Criminology",
+    "BS Psychology",
+    "BS Engineering",
+];
+// Edit this list to change the sets offered in the dropdown.
+const SETS = ["Set A", "Set B", "Set C", "Set D", "Set E", "Set F"];
+const OTHER_COURSE = "__other__";
+
+function fillSetSelect(sel, current = "", optional = true) {
+    const sets = current && !SETS.includes(current) ? [...SETS, current] : SETS;
+    sel.innerHTML = `<option value="">${optional ? "Set (optional)" : "No set / not sure"}</option>` +
+        sets.map((x) => `<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join("");
+    sel.value = current;
+}
+
+// Fill a year + course dropdown pair (and its "other" text box).
+// `current` values that aren't in the lists (older data) are kept, not lost.
+function fillClassSelects(yearSel, courseSel, otherInput, year = "", course = "", optional = true) {
+    const years = year && !YEAR_LEVELS.includes(year) ? [...YEAR_LEVELS, year] : YEAR_LEVELS;
+    yearSel.innerHTML = `<option value="">${optional ? "Year level (optional)" : "Choose your year"}</option>` +
+        years.map((y) => `<option value="${escapeHtml(y)}">${escapeHtml(y)}</option>`).join("");
+    yearSel.value = year;
+    courseSel.innerHTML = `<option value="">${optional ? "Course (optional)" : "Choose your course"}</option>` +
+        COURSES.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("") +
+        `<option value="${OTHER_COURSE}">Other (type it in)</option>`;
+    const isOther = course && !COURSES.includes(course);
+    courseSel.value = isOther ? OTHER_COURSE : course;
+    otherInput.value = isOther ? course : "";
+    otherInput.hidden = !isOther;
+    courseSel.onchange = () => {
+        otherInput.hidden = courseSel.value !== OTHER_COURSE;
+        if (!otherInput.hidden) otherInput.focus();
+    };
+}
+
+function readCourse(courseSel, otherInput) {
+    return courseSel.value === OTHER_COURSE ? otherInput.value.trim() : courseSel.value;
+}
+
 async function apiGet(path) {
     const res = await fetch(path, { credentials: "same-origin" });
     const data = await res.json().catch(() => ({}));

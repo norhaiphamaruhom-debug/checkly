@@ -116,7 +116,12 @@ always creates a **Student**. Signing up is two steps: fill in the form (name, e
 password typed twice), then a **Check your details** screen shows everything back
 (password masked, with a Show button). Nothing is saved until they press **Create account**,
 and **Go back and edit** keeps what they typed. If the email is already taken they're sent
-back to the form with the error. After creating the account they land on the login page
+back to the form with the error. The form also asks for **year level**, **course** and
+(optionally) **set**. This is only a *request*: the student shows up in Admin > People with a
+**Waiting for approval** box, the classes that match their year/course/set are suggested (exact
+set first), and the admin picks one and presses **Approve** (or **Dismiss**). Until then the
+student's page says they're waiting for approval. Assigning a class by hand also clears the
+request. A "Needs attention" item on the Overview jumps straight to these students. After creating the account they land on the login page
 with their email filled in. Only an admin can promote an account to Teacher
 or Admin (Admin dashboard > Accounts > Edit > Role). There is no admin signup
 code any more.
@@ -134,7 +139,7 @@ student.html                  Student dashboard (history, percentage, calendar)
 static/style.css              Shared styling (notebook/chalkboard theme)
 static/app.js                 Shared fetch helpers, session guard, toast w/ undo, CSV export, skeletons, PWA registration
 static/login.js               Login form logic
-static/register.js            Registration form logic
+static/register.js            Registration form logic (incl. class request)
 static/admin.js                Admin dashboard logic (edit/reset/import/trends)
 static/teacher.js             Teacher dashboard logic (dates/mark-all/undo/streaks)
 static/student.js             Student dashboard logic (history/percentage/calendar/export)
