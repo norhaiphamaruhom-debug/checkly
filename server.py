@@ -443,6 +443,8 @@ class CheeklyHandler(BaseHTTPRequestHandler):
             return
         mime, _ = mimetypes.guess_type(full_path)
         mime = mime or "application/octet-stream"
+        if safe_path.replace("\\", "/") == "static/manifest.json":
+            mime = "application/manifest+json"
         with open(full_path, "rb") as f:
             data = f.read()
         self.send_response(200)
