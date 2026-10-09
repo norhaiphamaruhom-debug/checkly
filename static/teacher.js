@@ -304,6 +304,10 @@ function wireMarkButtons(root, student) {
     });
 }
 
+function statusWord(st) {
+    return { PRESENT: "Present", LATE: "Late", ABSENT: "Absent", UNMARKED: "Not marked yet" }[st] || st;
+}
+
 function initialsOf(name) {
     const parts = String(name || "?").trim().split(/\s+/).filter(Boolean);
     return ((parts[0] || "?")[0] + (parts.length > 1 ? parts[parts.length - 1][0] : "")).toUpperCase();
@@ -327,7 +331,7 @@ function renderStudentRow(student) {
         <div class="roster-avatar" style="background:hsl(${avatarHue(student)} 35% 38%)" aria-hidden="true">${escapeHtml(initialsOf(student.name))}</div>
         <div class="roster-main">
             <div class="roster-name"${student.otherClasses && student.otherClasses.length ? ` title="Also in: ${escapeHtml(student.otherClasses.join(", "))}"` : ""}>${escapeHtml(student.name)} ${streak}</div>
-            <div class="roster-status status-${student.status}">${student.status}</div>
+            <div class="roster-status status-${student.status}">${statusWord(student.status)}</div>
         </div>
         <div class="attendance-actions">
             <button data-status="PRESENT" class="mark-btn present-btn ${student.status === "PRESENT" ? "is-current" : ""}">Present</button>
@@ -350,9 +354,9 @@ function renderStudentCard(student) {
     card.innerHTML = `
         ${streakBadge}
         <div class="student-profile-cover"></div>
-        <img class="student-profile-img" src="${avatarUrl(student)}" alt="${escapeHtml(student.name)}" loading="lazy">
+        <div class="student-profile-img" style="background:hsl(${avatarHue(student)} 35% 38%)" aria-hidden="true">${escapeHtml(initialsOf(student.name))}</div>
         <div class="student-name">${escapeHtml(student.name)}</div>
-        <div class="student-attendance status-${student.status}">${student.status}</div>
+        <div class="student-attendance status-${student.status}">${statusWord(student.status)}</div>
         <div class="attendance-actions">
             <button data-status="PRESENT" class="mark-btn present-btn">Present</button>
             <button data-status="LATE" class="mark-btn late-btn">Late</button>

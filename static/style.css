@@ -2495,3 +2495,84 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--late); outline-
     .student-page .history-toolbar .custom-select { max-width: none; flex-basis: 100%; }
 }
 .student-page .attendance-history .empty-state { width: 100%; padding: 22px 16px; text-align: center; background: var(--card); border: 1px dashed rgba(31, 27, 22, 0.25); border-radius: 10px; margin: 0; }
+
+
+/* ==========================================================================
+   TEACHER PAGE LAYOUT - one aligned column, readable cards.
+   (screen only, so the print roster keeps its own layout)
+   ========================================================================== */
+@media screen {
+    .teacher-page .main-homepage-container { justify-content: center; }
+    .teacher-page .list-container {
+        align-items: stretch; width: 100%; max-width: 980px; margin: 0 auto;
+        padding: 28px 20px 56px; min-height: calc(100vh - var(--topbar-h));
+    }
+    .teacher-page .list-container > * { width: 100%; max-width: none; margin-left: 0; margin-right: 0; }
+
+    /* title + date on one line, left aligned */
+    .teacher-page .dashboard-header { justify-content: space-between; margin: 0 0 14px; gap: 12px 20px; }
+    .teacher-page .list-title { text-align: left; margin: 0; }
+    .teacher-page .date-nav { display: flex; align-items: center; gap: 8px; }
+    .teacher-page .date-nav button:not(.btn) { min-width: 44px; min-height: 44px; font-size: 1.1rem; }
+    .teacher-page .date-nav input[type="date"] { min-height: 44px; font-size: 1rem; padding: 0 10px; }
+
+    .teacher-page .class-tabs { justify-content: flex-start; padding: 0 0 14px; }
+    .teacher-page .class-tab { min-height: 44px; padding: 8px 18px; font-size: 1rem; }
+
+    /* four equal numbers */
+    .teacher-page .today-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 0 0 14px; justify-content: stretch; }
+    .teacher-page .today-summary .stat-card { width: auto; min-width: 0; margin: 0; padding: 14px 8px; text-align: center; }
+    .teacher-page .progress-wrap { margin: 0 0 18px; }
+    .teacher-page .progress-text { font-size: 1rem; text-align: left; margin-bottom: 6px; }
+
+    /* actions + filters */
+    .teacher-page .action-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 12px; }
+    .teacher-page .view-toggle button { min-height: 44px; padding: 8px 20px; font-size: 1rem; }
+    .teacher-page .list-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 0 18px; }
+    .teacher-page .list-controls .control-field { width: 100%; max-width: none; }
+    .teacher-page .list-controls .custom-inp { width: 100%; }
+
+    /* the roster itself */
+    .teacher-page .students-container { width: 100%; padding-top: 0; }
+    .teacher-page .students-container.roster-rows { display: flex; flex-direction: column; gap: 10px; max-width: none; }
+    .teacher-page .roster-row { padding: 12px 16px; gap: 14px; border-radius: 10px; }
+    .teacher-page .roster-avatar { width: 44px; height: 44px; font-size: 1rem; }
+    .teacher-page .roster-name { font-size: 1.1rem; }
+    .teacher-page .roster-status { font-size: 0.95rem; text-transform: none; }
+    .teacher-page .roster-row .attendance-actions { width: auto; padding: 0; gap: 8px; }
+    .teacher-page .mark-btn { min-height: 44px; min-width: 84px; padding: 8px 14px; font-size: 1rem; border-radius: 8px; }
+    .teacher-page .roster-row .mark-btn { flex: none; }
+
+    /* cards: a proper grid, nothing overflows */
+    .teacher-page .students-container:not(.roster-rows) {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; justify-content: stretch;
+    }
+    .teacher-page .student-profiles { width: auto; min-width: 0; margin: 0; border-radius: 12px; padding-bottom: 6px; }
+    .teacher-page .student-profile-cover { height: 52px; border-radius: 0; }
+    .teacher-page .student-profile-img {
+        display: flex; align-items: center; justify-content: center;
+        width: 68px; height: 68px; margin-top: -34px; color: #fff; font-size: 1.4rem; font-weight: 700;
+    }
+    .teacher-page .student-name { font-size: 1.1rem; margin-top: 8px; }
+    .teacher-page .student-attendance { font-size: 1rem; letter-spacing: 0; margin-bottom: 4px; }
+    .teacher-page .student-profiles .attendance-actions { padding: 8px 12px 10px; gap: 6px; }
+    .teacher-page .student-profiles .mark-btn { min-width: 0; padding: 8px 4px; font-size: 0.95rem; }
+}
+
+@media screen and (max-width: 640px) {
+    .teacher-page .list-container { padding: 20px 14px 48px; }
+    .teacher-page .today-summary { grid-template-columns: repeat(2, 1fr); }
+    .teacher-page .list-controls { grid-template-columns: 1fr; }
+    .teacher-page .roster-row { flex-wrap: wrap; }
+    .teacher-page .roster-row .attendance-actions { width: 100%; }
+    .teacher-page .roster-row .mark-btn { flex: 1; min-width: 0; }
+    .teacher-page .students-container:not(.roster-rows) { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .teacher-page .student-profiles .attendance-actions { flex-wrap: wrap; }
+    .teacher-page .student-profiles .mark-btn { flex: 1 1 100%; }
+}
+
+/* mark buttons: full strength so the words are easy to read; the chosen one gets a ring */
+.roster-row .mark-btn, .student-profiles .mark-btn { opacity: 1 !important; }
+.late-btn { color: #1F1B16; }
+.roster-row .mark-btn:not(.is-current):hover { filter: brightness(0.95); }
+.roster-row .mark-btn.is-current { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--ink); }
