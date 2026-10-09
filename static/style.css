@@ -2265,3 +2265,19 @@ button.stat-link:focus-visible { outline: 2px solid var(--late); outline-offset:
 .review-edit:hover { text-decoration: underline; }
 .review-toggle:focus-visible, .review-edit:focus-visible { outline: 2px solid var(--late); outline-offset: 2px; }
 .auth-success { width: 100%; padding: 10px 12px; border-radius: 6px; margin-bottom: 8px; font-size: 13px; font-weight: 700; color: #1f5a37; background: rgba(60, 133, 88, 0.14); border: 1px solid rgba(60, 133, 88, 0.4); }
+
+/* ---- register: password eye toggle ---- */
+.pw-field { position: relative; width: 90%; }
+.auth-form .pw-field { width: 100%; }
+.pw-field .custom-inp { width: 100%; padding-right: 44px; box-sizing: border-box; }
+.pw-toggle { position: absolute; top: 50%; right: 6px; transform: translateY(-50%); width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border: 0; background: none; border-radius: 6px; color: var(--ink-soft); cursor: pointer; }
+.pw-toggle:hover { color: var(--board); background: rgba(47, 74, 59, 0.08); }
+.pw-toggle:focus-visible { outline: 2px solid var(--late); outline-offset: 1px; }
+.pw-toggle .pw-eye-off { display: none; }
+.pw-toggle.is-revealed .pw-eye { display: none; }
+.pw-toggle.is-revealed .pw-eye-off { display: block; }
+
+/* ---- admin: new account indicator ---- */
+.badge-new { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; background: var(--present); color: #fff; vertical-align: middle; }
+.users-table tr.row-new td { background: rgba(60, 133, 88, 0.08); }
+.users-table tr.row-new td:first-child { box-shadow: inset 3px 0 0 var(--present); }

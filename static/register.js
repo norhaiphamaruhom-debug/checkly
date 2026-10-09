@@ -55,6 +55,22 @@ document.addEventListener("DOMContentLoaded", () => {
         renderReview();
     });
 
+
+    // Eye buttons: show / hide what's typed in a password box.
+    document.querySelectorAll("[data-pw-toggle]").forEach((btn) => {
+        const input = document.getElementById(btn.dataset.pwToggle);
+        btn.addEventListener("click", () => {
+            const reveal = input.type === "password";
+            input.type = reveal ? "text" : "password";
+            btn.classList.toggle("is-revealed", reveal);
+            btn.setAttribute("aria-pressed", String(reveal));
+            const label = reveal ? "Hide password" : "Show password";
+            btn.setAttribute("aria-label", label);
+            btn.title = label;
+            input.focus();
+        });
+    });
+
     // Back to editing - everything they typed is still there.
     document.getElementById("edit-btn").addEventListener("click", () => showStep("form"));
 

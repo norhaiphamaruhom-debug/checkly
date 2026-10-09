@@ -108,6 +108,12 @@ def init_db():
     )
     conn.commit()
 
+    # Migration 0: remember when each account was created so the admin view
+    # can show the newest sign-ups first. Older accounts keep a NULL value.
+    if "created_at" not in [r["name"] for r in conn.execute("PRAGMA table_info(users)")]:
+        conn.execute("ALTER TABLE users ADD COLUMN created_at TEXT")
+        conn.commit()
+
     # Migration 1: older versions stored ONE class on the user row. Copy it
     # into class_students so nobody loses their class.
     user_cols = [r["name"] for r in conn.execute("PRAGMA table_info(users)")]
@@ -156,7 +162,7 @@ def init_db():
     row = conn.execute("SELECT COUNT(*) AS c FROM users WHERE role = 'admin'").fetchone()
     if row["c"] == 0:
         conn.execute(
-            "INSERT INTO users (name, email, password_hash, role) VALUES (?,?,?,?)",
+            "INSERT INTO users (name, email, password_hash, role, created_at) VALUES (?,?,?,?,datetime('now'))",
             ("Administrator", "admin@checkly.com", hash_password("admin123"), "admin"),
         )
         conn.commit()
@@ -552,9 +558,13 @@ class CheeklyHandler(BaseHTTPRequestHandler):
                 return
             conn = get_db()
             rows = conn.execute(
-                "SELECT id, name, email, role FROM users ORDER BY role, name"
+                """SELECT id, name, email, role, created_at,
+                          CASE WHEN created_at >= datetime('now', '-7 days') THEN 1 ELSE 0 END AS is_new
+                   FROM users ORDER BY id DESC"""
             ).fetchall()
             users = [dict(r) for r in rows]
+            for u in users:
+                u["isNew"] = bool(u.pop("is_new"))
             memberships = {}  # user id -> [{id, name}]
             for r in conn.execute(
                 """SELECT cs.student_id AS uid, c.id, c.name FROM class_students cs
@@ -830,7 +840,7 @@ class CheeklyHandler(BaseHTTPRequestHandler):
                         else:
                             class_ids.append(cid)
                 cur = conn.execute(
-                    "INSERT INTO users (name, email, password_hash, role) VALUES (?,?,?,?)",
+                    "INSERT INTO users (name, email, password_hash, role, created_at) VALUES (?,?,?,?,datetime('now'))",
                     (name, email, hash_password(password), role),
                 )
                 set_user_classes(conn, cur.lastrowid, role, class_ids)
@@ -1118,7 +1128,7 @@ class CheeklyHandler(BaseHTTPRequestHandler):
                 self.send_json({"error": "One of those classes doesn't exist."}, 400)
                 return
         cur = conn.execute(
-            "INSERT INTO users (name, email, password_hash, role) VALUES (?,?,?,?)",
+            "INSERT INTO users (name, email, password_hash, role, created_at) VALUES (?,?,?,?,datetime('now'))",
             (name, email, hash_password(password), role),
         )
         set_user_classes(conn, cur.lastrowid, role, class_ids)

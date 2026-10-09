@@ -530,9 +530,10 @@ function renderUserRow(u) {
         : `<select class="custom-inp custom-select role-select role-${u.role}" data-role-select="${u.id}" aria-label="Role for ${escapeHtml(u.name)}">
                ${["student", "teacher", "admin"].map((r) => `<option value="${r}" ${r === u.role ? "selected" : ""}>${r}</option>`).join("")}
            </select>`;
+    const newBadge = u.isNew ? '<span class="badge-new" title="Joined in the last 7 days">New</span>' : "";
     return `
-        <tr>
-            <td data-label="Name" title="${escapeHtml(u.name)}">${escapeHtml(u.name)}</td>
+        <tr class="${u.isNew ? "row-new" : ""}">
+            <td data-label="Name" title="${escapeHtml(u.name)}">${escapeHtml(u.name)}${newBadge}</td>
             <td data-label="Email" title="${escapeHtml(u.email)}">${escapeHtml(u.email)}</td>
             <td data-label="Role">${roleCell}</td>
             <td data-label="Classes">${classCell}</td>
